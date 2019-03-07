@@ -1,4 +1,4 @@
-# Stage M2 bioinformatiques - Analyse metabarcoding
+# M2 internship - Metabarcoding analysis 
 
 ## Authors
 
