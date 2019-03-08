@@ -110,7 +110,7 @@ qiime feature-classifier classify-sklearn \
   --i-classifier /taxonomy/silva-132-99-nb-classifier.qza \
   --i-reads rep-seqs-dada2.qza  \
   --o-classification taxonomy/taxonomy.qza \
-  --p-n-jobs ${NSLOTS} \
+  --p-n-jobs 1 \
   --verbose
 
 qiime metadata tabulate \
