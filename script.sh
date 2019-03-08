@@ -50,9 +50,18 @@ qiime demux summarize \
   --i-data demux-paired-end.qza \
   --o-visualization demux.qzv
 
+# Adaptators removal 
+qiime cutadapt trim-paired \
+        --i-demultiplexed-sequences demux-paired-end.qza \
+        --p-cores 1 \
+        --p-front-f AATGATACGGACCACCGAGATCTACAC \
+        --p-front-r CAAGCAGAAGACGGCATACGAGAT \
+        --p-error-rate 0.1 \
+        --o-trimmed-sequences demux-paired-end-trimmed.qza \
+
+# PCR primers removal 
 
 # Dada2 
-
 qiime dada2 denoise-single \
   --i-demultiplexed-seqs demux-paired-end.qza \
   --p-trim-left 0 \
