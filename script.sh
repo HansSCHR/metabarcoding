@@ -50,7 +50,7 @@ qiime demux summarize \
   --i-data demux-paired-end.qza \
   --o-visualization demux.qzv
 
-# Adaptators removal 
+# Adapters removal 
 qiime cutadapt trim-paired \
         --i-demultiplexed-sequences demux-paired-end.qza \
         --p-cores 1 \
