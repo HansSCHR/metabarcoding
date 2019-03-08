@@ -61,24 +61,26 @@ qiime cutadapt trim-paired \
 
 # PCR primers removal 
 
-# Dada2 
-qiime dada2 denoise-single \
-  --i-demultiplexed-seqs demux-paired-end.qza \
-  --p-trim-left 0 \
-  --p-trunc-len 240 \
-  --o-representative-sequences rep-seqs-dada2.qza \
-  --o-table table-dada2.qza \
-  --o-denoising-stats stats-dada2.qza
 
-# You need to be aware of parameters such as --p-max-ee, ... and adapt the parameters to your dataset
 
- qiime dada2 denoise-paired --i-demultiplexed-seqs demux-paired-end.qza \
+
+# DADA2
+
+#qiime dada2 denoise-single \
+#  --i-demultiplexed-seqs demux-paired-end.qza \
+#  --p-trim-left 0 \
+#  --p-trunc-len 240 \
+#  --o-representative-sequences rep-seqs-dada2.qza \
+#  --o-table table-dada2.qza \
+#  --o-denoising-stats stats-dada2.qza
+
+qiime dada2 denoise-paired --i-demultiplexed-seqs demux-paired-end.qza \
                            --p-trunc-len-f 0 \
                            --p-trunc-len-r 240 \ #Quality Score decreases from 240pb for the reverse reads
                            --p-max-ee 2.0 \ #default value : all the reads with number of exepcted errors higher than 2.0 will be discarded
-                           --p-trunc-q 30 \
+                           --p-trunc-q 30 \ #reads are truncated at the first instance of a quality score less than or equal to 30
                            --p-n-reads-learn 1000000 \ #default value : it's the number of read to use during the training of error model 
-                           --p-n-threads 0 \
+                           --p-n-threads 0 \ #it uses all the available cores
                            --p-chimera-method consensus\ #default value : chimeras are detected in samples individually, and sequences found chimeric in a sufficient 								fraction of samples are removed
                            --o-representative-sequences rep-seq-dada2.qza \
                            --o-table table-dada2.qza \
@@ -86,3 +88,37 @@ qiime dada2 denoise-single \
                            --verbose
 
 
+
+# Build ASV phylogeny with FastTree
+
+mkdir phylogeny
+
+qiime phylogeny align-to-tree-mafft-fasttree \
+  --p-n-threads 0\
+  --i-sequences rep-seqs-dada2.qza \
+  --o-alignment phylogeny/aligned-rep-seqs.qza \
+  --o-masked-alignment phylogeny/masked-aligned-rep-seqs.qza \
+  --o-tree phylogeny/unrooted-tree.qza \
+  --o-rooted-tree phylogeny/rooted-tree.qza \
+  --verbose
+
+# Assign Taxonomy to ASV
+
+mkdir taxonomy
+
+qiime feature-classifier classify-sklearn \
+  --i-classifier /taxonomy/silva-132-99-nb-classifier.qza \
+  --i-reads rep-seqs-dada2.qza  \
+  --o-classification taxonomy/taxonomy.qza \
+  --p-n-jobs ${NSLOTS} \
+  --verbose
+
+qiime metadata tabulate \
+  --m-input-file taxonomy/taxonomy.qza  \
+  --o-visualization taxonomy/taxonomy.qzv
+
+
+
+
+# Export ASV table in biom format with taxonomy so we can import it easely in phyloseq/R
+# see https://forum.qiime2.org/t/exporting-and-modifying-biom-tables-e-g-adding-taxonomy-annotations/3630
