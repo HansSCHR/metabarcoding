@@ -70,5 +70,19 @@ qiime dada2 denoise-single \
   --o-table table-dada2.qza \
   --o-denoising-stats stats-dada2.qza
 
+# You need to be aware of parameters such as --p-max-ee, ... and adapt the parameters to your dataset
+
+ qiime dada2 denoise-paired --i-demultiplexed-seqs demux-paired-end.qza \
+                           --p-trunc-len-f 0 \
+                           --p-trunc-len-r 240 \ #Quality Score decreases from 240pb for the reverse reads
+                           --p-max-ee 2.0 \ #default value : all the reads with number of exepcted errors higher than 2.0 will be discarded
+                           --p-trunc-q 30 \
+                           --p-n-reads-learn 1000000 \ #default value : it's the number of read to use during the training of error model 
+                           --p-n-threads 0 \
+                           --p-chimera-method consensus\ #default value : chimeras are detected in samples individually, and sequences found chimeric in a sufficient 								fraction of samples are removed
+                           --o-representative-sequences rep-seq-dada2.qza \
+                           --o-table table-dada2.qza \
+                           --o-denoising-stats stats-dada2.qza \
+                           --verbose
 
 
