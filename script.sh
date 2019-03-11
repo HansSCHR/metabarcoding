@@ -78,9 +78,9 @@ qiime dada2 denoise-paired --i-demultiplexed-seqs demux-paired-end.qza \
                            --p-trunc-len-f 0 \
                            --p-trunc-len-r 240 \ #Quality Score decreases from 240pb for the reverse reads
                            --p-max-ee 2.0 \ #default value : all the reads with number of exepcted errors higher than 2.0 will be discarded
-                           --p-trunc-q 10 \ #reads are truncated at the first instance of a quality score less than or equal to 30
+                           --p-trunc-q 10 \ #reads are truncated at the first instance of a quality score less than or equal to 10
                            --p-n-reads-learn 1000000 \ #default value : it's the number of read to use during the training of error model 
-                           --p-n-threads ${NSLOTS} \ #it uses all the available cores
+                           --p-n-threads ${NSLOTS} \ #default value. When =0, it uses all the available cores
                            --p-chimera-method consensus\ #default value : chimeras are detected in samples individually, and sequences found chimeric in a sufficient fraction of samples are removed
                            --o-representative-sequences rep-seq-dada2.qza \
                            --o-table table-dada2.qza \
