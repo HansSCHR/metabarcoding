@@ -24,15 +24,10 @@ if (ans=="n"){
 
 
 
-# Check and load dada2 version
-library(dada2); packageVersion("dada2")
-
-
-
 # Assign data path 
 #path <- /homedir/schrieke/data 
 #path <- "C:/Users/U117-F435/Desktop/data"
-path <- "C:/Users/SCHRIEKE Hans/Desktop/DADA2/data"
+#path <- "C:/Users/SCHRIEKE Hans/Desktop/DADA2/data"
 files <- list.files(path)
 
 
