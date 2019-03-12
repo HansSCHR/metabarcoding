@@ -6,7 +6,7 @@
 #$ -l mem_free=6G
 #$ -V
 #$ -cwd
-
+#Ohyes!
 SUPERLIKE
 
 # Load required modules 
@@ -22,7 +22,7 @@ conda env create -n qiime --file qiime2-2018.11-py35-linux-conda.yml
 # OPTIONAL CLEANUP
 rm qiime2-2018.11-py35-linux-conda.yml
 
-# super ton script
+
 
 # Activate qiime2 environment
 
