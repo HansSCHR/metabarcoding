@@ -6,13 +6,21 @@
 
 # Set the working directory 
 #setwd("C:/Users/U117-F435/Desktop/data")
-setwd("C:/Users/SCHRIEKE Hans/Desktop/DADA2/data")
-
+#setwd("C:/Users/SCHRIEKE Hans/Desktop/DADA2/data")
+print ("Please, put your fastq and sylva files in a same folder before to run this script.")
+path <- readline(prompt="Enter your path directory as /your/path/with/fastq/files: ")
+setwd("path")
 
 # Install dada2 package and load it 
-if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-BiocManager::install("dada2", version = "3.8")
+ans <- readline(prompt="Did you ever install dada2? y/n ")
+
+if (ans=="n"){
+  if (!requireNamespace("BiocManager", quietly = TRUE))
+      install.packages("BiocManager")
+  BiocManager::install("dada2", version = "3.8")
+  } else {
+  library(dada2); packageVersion("dada2")
+}
 
 
 
