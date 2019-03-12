@@ -7,5 +7,5 @@
 
 ## Supervisors 
 
-* **Mme Julie REVEILLAUD** 
-* **Mr Florentin CONSTANCIAS** 
+* **Dr Julie REVEILLAUD** 
+* **Dr Florentin CONSTANCIAS** 
