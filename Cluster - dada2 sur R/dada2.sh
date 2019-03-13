@@ -13,7 +13,6 @@ then
 	# dada2 environment installation + run the script
 	conda create -n dada2 zlib=1.2.8
 	source activate dada2
-	source /homedir/schrieke/anaconda/bin/activate dada3
 	conda install -c r r-base=3.5
 	conda install gxx_linux-64
 	conda install -c bioconda -c conda-forge bioconductor-shortread
