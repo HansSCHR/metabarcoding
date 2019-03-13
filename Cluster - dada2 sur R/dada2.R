@@ -4,16 +4,8 @@
 # Requirement: 
 # R 3.5.0 or more 
 
-# Install dada2 package and load it 
-ans <- readline(prompt="Did you ever install dada2? y/n ")
-
-if (ans=="n"){
-  if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-  BiocManager::install("dada2", version = "3.8")
-} else {
-  library(dada2); packageVersion("dada2")
-}
+# Load dada2
+library(dada2); packageVersion("dada2")
 
 
 # Set the working directory 
