@@ -17,6 +17,7 @@ then
 	conda install gxx_linux-64
 	conda install -c bioconda -c conda-forge bioconductor-shortread
 	conda install libiconv
+	Rscript install_dada2.R
 	Rscript dada2.R
 
 else [[ $REPLY =~ ^[Nn]$ ]]
