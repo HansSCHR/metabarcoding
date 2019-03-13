@@ -42,8 +42,21 @@ sample.names <- sapply(strsplit(basename(forward), "_"), `[`, 1)
 
 
 # Reads quality profil to know where truncate
-plotQualityProfile(forward[1:2]) #forward reads
-plotQualityProfile(reverse[1:2]) #reverse reads
+dir.create("plot")
+path2 <- "/gs7k1/home/schrieke/Fastq/plot"
+setwd(path2)
+
+pdf("1-plotForward.pdf")
+x11()
+plotQualityProfile(forward, aggregate = TRUE) #forward reads
+dev.off()
+
+pdf("2-plotReverse.pdf")
+x11()
+plotQualityProfile(reverse, aggregate = TRUE) #reverse reads
+dev.off()
+
+setwd(path)
 
 
 # Filter and trim
@@ -60,7 +73,10 @@ head(out)
 errForward <- learnErrors(filtForward, multithread=TRUE)
 errReverse <- learnErrors(filtReverse, multithread=TRUE)
 
+setwd(path2)
+pdf("3-plotErrors")
 plotErrors(errForward, nominalQ=TRUE)
+dev.off()
 
 # Dereplication
 derepForward <- derepFastq(filtForward, verbose=TRUE)
