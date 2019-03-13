@@ -1,0 +1,36 @@
+INSTALLER DADA2 - TUTO ULTIME! 
+
+Quand j'essayais d'installer dada2, j'avais des problèmes de compilation notamment pendant l'installation du package "ShortRead". 
+
+Après de nombreuses heures perdues et tests infructueux,j'ai trouvé quelqu'un qui a trouvé la marche à suivre pour résoudre le problème. Il suffit de suivre ces différentes étapes pour installer dada2 sur R :  
+
+
+$ conda create -n dada2 zlib=1.2.8 #résout les problèmes de zlib "error: zlib not found"  
+
+$ conda install -c r r-base=3.5
+
+$ conda install gxx_linux-64 # résout les problèmes de compilation que j'avais habituellement notamment avec gcc 
+
+$ conda install -c bioconda -c conda-forge bioconductor-shortread #installe shortred (sans erreur!!)
+
+$ conda install libiconv
+
+$ R
+
+$ install.packages("BiocManager")
+
+$BiocManager::install("dada2", version = "3.8")
+
+
+
+De plus, rstudio fonctionne parfaitement sur le cluster :
+
+$ conda install -c r rstudio
+
+$ rstudio 
+
+
+source : https://waoverholt.com/installing-dada2-in-conda-on-server/
+
+
+
