@@ -107,7 +107,7 @@ print("Stats done.")
 
 # Assign taxonomy
 # taxa <- assignTaxonomy(seqtab.nochim, "C:/Users/U117-F435/Desktop/silva_nr_v132_train_set.fa.gz", multithread=FALSE)
-taxa <- assignTaxonomy(seqtab.nochim, "~/Fastq/silva_nr_v132_train_set.fa.gz", multithread=FALSE)
+taxa <- assignTaxonomy(seqtab.nochim, "~/Fastq/silva_nr_v132_train_set.fa.gz", multithread=TRUE)
 taxa <- addSpecies(taxa, "~/Fastq/silva_species_assignment_v132.fa.gz")
 
 taxa.print <- taxa # Removing sequence rownames for display only
