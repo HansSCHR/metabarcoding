@@ -45,13 +45,13 @@ filtReverse <- file.path(path, "filtered", paste0(sample.names, "_R_filt.fastq.g
 
 out <- filterAndTrim(forward, filtForward, reverse, filtReverse, truncLen=c(0,240),
                      maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,
-                     compress=TRUE, multithread=FALSE)
+                     compress=TRUE, multithread=TRUE)
 head(out)
 
 
 # Learn the error rates
-errForward <- learnErrors(filtForward, multithread=FALSE)
-errReverse <- learnErrors(filtReverse, multithread=FALSE)
+errForward <- learnErrors(filtForward, multithread=TRUE)
+errReverse <- learnErrors(filtReverse, multithread=TRUE)
 
 setwd(path2)
 pdf("3-plotErrors")
@@ -69,8 +69,8 @@ names(derepReverse) <- sample.names
 
 
 # Sample Inference
-dadaForward <- dada(derepForward, err=errForward, multithread=FALSE)
-dadaReverse <- dada(derepReverse, err=errReverse, multithread=FALSE)
+dadaForward <- dada(derepForward, err=errForward, multithread=TRUE)
+dadaReverse <- dada(derepReverse, err=errReverse, multithread=TRUE)
 
 
 # Merge paired reads
@@ -101,7 +101,10 @@ track <- cbind(out, sapply(dadaForward, getN), sapply(dadaReverse, getN), sapply
 colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
 rownames(track) <- sample.names
 head(track)
+#print(track)
+write.table(track,"stats.csv",sep=";",dec=",") 
 print("Stats done.")
+print("A csv file has been created in your folder : stats.csv")
 
 
 
