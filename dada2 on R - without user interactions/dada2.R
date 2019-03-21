@@ -58,7 +58,7 @@ pdf("3-plotErrorsFwd")
 plotErrors(errForward, nominalQ=TRUE)
 dev.off()
 
-pdf("3-plotErrorsRvs")
+pdf("4-plotErrorsRvs")
 plotErrors(errReverse, nominalQ=TRUE)
 dev.off()
 
@@ -95,7 +95,9 @@ table(nchar(getSequences(seqtab)))
 seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
 dim(seqtab.nochim)
 sum(seqtab.nochim)/sum(seqtab)
+write.table(t(seqtab),  "seqtab.csv", sep=";", dec=",")
 print("Chimeras removed.")
+print("A csv file has been created in your folder : seqtab.csv")
 
 
 # Track reads through the pipeline
@@ -120,6 +122,12 @@ taxa <- addSpecies(taxa, "~/Fastq/silva_species_assignment_v132.fa.gz")
 taxa.print <- taxa # Removing sequence rownames for display only
 rownames(taxa.print) <- NULL
 head(taxa.print)
+write.table(taxa,"taxa.csv",sep=";",dec=",")
 #print(taxa)
-
 print ("Taxonomy done.")
+print("A csv file has been created in your folder : taxa.csv")
+
+# Save the session
+install.packages("session", repos = "http://cran.us.r-project.org")
+library(session)
+save.session("dada2.Rda")
