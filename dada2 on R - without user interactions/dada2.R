@@ -54,8 +54,12 @@ errForward <- learnErrors(filtForward, multithread=TRUE)
 errReverse <- learnErrors(filtReverse, multithread=TRUE)
 
 setwd(path2)
-pdf("3-plotErrors")
+pdf("3-plotErrorsFwd")
 plotErrors(errForward, nominalQ=TRUE)
+dev.off()
+
+pdf("3-plotErrorsRvs")
+plotErrors(errReverse, nominalQ=TRUE)
 dev.off()
 
 setwd(path)
