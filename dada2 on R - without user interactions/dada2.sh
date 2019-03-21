@@ -15,4 +15,16 @@
 module load system/conda/5.1.0
 
 source activate dada2
+
+cd /homedir/schrieke/Fastq/
+mkdir tables
+
 Rscript dada2.R 
+
+mv /homedir/schrieke/Fastq/stats.csv /homedir/schrieke/Fastq/tables
+mv /homedir/schrieke/Fastq/taxa.csv /homedir/schrieke/Fastq/tables
+mv /homedir/schrieke/Fastq/seqtab.csv /homedir/schrieke/Fastq/tables
+
+cd /homedir/schrieke/Fastq/tables
+
+#Rscript phyloseq.R
