@@ -95,7 +95,7 @@ table(nchar(getSequences(seqtab)))
 seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
 dim(seqtab.nochim)
 sum(seqtab.nochim)/sum(seqtab)
-write.table(t(seqtab),  "seqtab.csv", sep=";", dec=",")
+write.table(t(seqtab.nonchim),  "seqtab.csv", sep=";", dec=",")
 print("Chimeras removed.")
 print("A csv file has been created in your folder : seqtab.csv")
 
