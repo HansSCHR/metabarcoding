@@ -127,6 +127,26 @@ write.table(taxa,"taxa.csv",sep=";",dec=",")
 print ("Taxonomy done.")
 print("A csv file has been created in your folder : taxa.csv")
 
+# Phylogenetic tree
+library(DECIPHER)
+library(phangorn)
+
+seqs <- getSequences(seqtab.nochim)
+names(seqs) <- seqs
+alignment <- AlignSeqs(DNAStringSet(seqs), anchor=NA)
+
+phang.align <- phyDat(as(alignment, "matrix"), type="DNA")
+dm <- dist.ml(phang.align)
+treeNJ <- NJ(dm)
+fit = pml(treeNJ, data=phang.align)
+
+fitGTR <- update(fit, k=4, inv=0.2)
+fitGTR <- optim.pml(fitGTR, model="GTR", optInv=TRUE, optGamma=TRUE,
+                    rearrangement = "stochastic", control = pml.control(trace = 0))
+detach("package:phangorn", unload=TRUE)
+
+
+
 # Save the session
 install.packages("session", repos = "http://cran.us.r-project.org")
 library(session)
