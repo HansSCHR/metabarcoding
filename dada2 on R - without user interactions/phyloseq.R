@@ -11,7 +11,8 @@ otu <- read.csv("seqtabnochim.csv", sep=";", dec=",")
 taxa <- read.csv("taxa.csv", sep=";", dec=",")
 metadata <- read.csv("metadata_run1.csv", sep=",", row.names = 1)
 
-metadata[metadata=="N"] <- NA # negative controls 
+metadata[metadata=="N"] <- NA # negative controls
+metadata <- na.omit(metadata) # remove N/A lines from metadata
 
 otu <- as.matrix(otu)
 taxa <- as.matrix(taxa)
