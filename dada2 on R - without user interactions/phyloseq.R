@@ -19,11 +19,16 @@ taxa <- as.matrix(taxa)
 metadata <- as.data.frame(metadata)
 
 
-# Normalization (min-max and log)
+# Normalization (min-max / log / DESeq2)
 otu_norm <- (otu -min(otu))/(max(otu)-min(otu))
-otu_log <- log(otu +1)
 otu_norm <- as.matrix(otu_norm)
+
+otu_log <- log(otu +1)
 otu_log <- as.matrix(otu_log)
+
+library(DESeq2)
+dds <- DESeqDataSetFromMatrix(countData=otu, colData=metadata, design=~DATE+LOCALISATION+ORGANISM,tidy = TRUE) #bug for now
+dds <- DESeq(dds)
 
 # Phyloseq installation
 #source('http://bioconductor.org/biocLite.R')
