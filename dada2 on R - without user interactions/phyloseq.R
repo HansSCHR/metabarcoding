@@ -14,20 +14,20 @@ metadata <- read.csv("metadata_run1.csv", sep=",", row.names = 1)
 metadata[metadata=="N"] <- NA # negative controls 
 
 otu <- as.matrix(otu)
-#print("otu table (matrix) : ")
-#head(otu)
-
 taxa <- as.matrix(taxa)
-#print("taxa table (matrix) : ")
-#head(taxa)
-
 metadata <- as.data.frame(metadata)
-#print ("metadata (data frame) : ")
-#head(metadata)
+
+
+# Normalization (min-max and log)
+otu_norm <- (otu -min(otu))/(max(otu)-min(otu))
+otu_log <- log(otu +1)
+otu_norm <- as.matrix(otu_norm)
+otu_log <- as.matrix(otu_log)
 
 # Phyloseq installation
 #source('http://bioconductor.org/biocLite.R')
 #biocLite('phyloseq')
+
 
 # Phyloseq and ggplot2 loading 
 library(phyloseq); packageVersion("phyloseq")
@@ -35,12 +35,15 @@ library(ggplot2); packageVersion("ggplot2")
 
 theme_set(theme_bw()) #set ggplot2 graphic theme 
 
+
 # Phyloseq object creation
 OTU = otu_table(otu, taxa_are_rows = TRUE)
+OTU2 = otu_table(otu_log, taxa_are_rows = TRUE)
 TAX = tax_table(taxa)
 SAM = sample_data(metadata)
 
 ps <- phyloseq(OTU, TAX, SAM) 
+ps2 <- phyloseq(OTU2, TAX, SAM)
 
 
 # Alpha diversity plot 
@@ -53,16 +56,49 @@ plot_richness(ps, measures=c("Shannon", "Simpson"), color="LOCATION")
 dev.off()
 
 
-# Bray-Curtis NMDS
-ps.prop <- transform_sample_counts(ps, function(otu) otu/sum(otu))
+# Bray-Curtis NMDS with otu_norm
+ps.prop <- transform_sample_counts(ps, function(otu_norm) otu_norm/sum(otu_norm))
 ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance="bray")
 
-pdf("6-NMDS.pdf")
-plot_ordination(ps.prop, ord.nmds.bray, color="LOCATION", title="Bray NMDS")
+pdf("6-NMDS-location-norm.pdf")
+plot_ordination(ps.prop, ord.nmds.bray, color="LOCATION", title="Bray NMDS (location)", label="SAMPLE")
+dev.off()
+
+pdf("7-NMDS-date-norm.pdf")
+plot_ordination(ps.prop, ord.nmds.bray, color="DATE", title="Bray NMDS (date)", label="SAMPLE")
+dev.off()
+
+pdf("8-NMDS-organism-norm.pdf")
+plot_ordination(ps.prop, ord.nmds.bray, color="ORGANISM", title="Bray NMDS (organism)", label="SAMPLE")
+dev.off()
+
+                                   
+# Bray-Curtis NMDS with otu_log
+ps2.prop <- transform_sample_counts(ps2, function(otu_log) otu_log/sum(otu_log))
+ord.nmds.bray <- ordinate(ps2.prop2, method="NMDS", distance="bray")
+
+pdf("6-NMDS-location-log.pdf")
+plot_ordination(ps.prop, ord.nmds.bray, color="LOCATION", title="Bray NMDS (location)", label="SAMPLE")
+dev.off()
+
+pdf("7-NMDS-date-log.pdf")
+plot_ordination(ps.prop, ord.nmds.bray, color="DATE", title="Bray NMDS (date)", label="SAMPLE")
+dev.off()
+
+pdf("8-NMDS-organism-log.pdf")
+plot_ordination(ps.prop, ord.nmds.bray, color="ORGANISM", title="Bray NMDS (organism)", label="SAMPLE")
 dev.off()
 
 setwd(path) 
 
+                                    
+# Adonis 
+library(vegan)
+library(dist)
+dist.jac <- vegdist(otu_norm, method="jaccard", binary=TRUE)
+adonis(formula = dist.jac, ps, data = metadata, permutation = 9999)
+                                    
+                                    
 # Save the session
 install.packages("session", repos = "http://cran.us.r-project.org")
 library(session)
