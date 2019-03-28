@@ -53,7 +53,7 @@ path2 <- "/gs7k1/home/schrieke/Fastq/tables/phyloseq_plot"
 setwd(path2)
 
 dir.create("alpha-diversity")
-path3 <- "D:/data/phyloseq_plot/alpha-diversity"
+path3 <- "/gs7k1/home/schrieke/Fastq/tables/phyloseq_plot/alpha-diversity"
 setwd(path3)
 
 pdf("alpha_diversity.pdf")
@@ -67,7 +67,7 @@ ps.prop <- transform_sample_counts(ps, function(otu_norm) otu_norm/sum(otu_norm)
 ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance="bray")
 
 dir.create("NMDS-norm")
-path3 <- "D:/data/phyloseq_plot/NMDS-norm"
+path3 <- "/gs7k1/home/schrieke/Fastq/tables/phyloseq_plot/NMDS-norm"
 setwd(path3)
                                    
 pdf("NMDS-location-norm.pdf")
@@ -89,7 +89,7 @@ ps2.prop <- transform_sample_counts(ps2, function(otu_log) otu_log/sum(otu_log))
 ord.nmds.bray <- ordinate(ps2.prop2, method="NMDS", distance="bray")
 
 dir.create("NMDS-log")
-path3 <- "D:/data/phyloseq_plot/NMDS-log"
+path3 <- "/gs7k1/home/schrieke/Fastq/tables/phyloseq_plot/NMDS-log"
 setwd(path3)
                                     
 pdf("NMDS-location-log.pdf")
