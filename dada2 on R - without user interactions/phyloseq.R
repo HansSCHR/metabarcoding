@@ -52,42 +52,56 @@ dir.create("phyloseq_plot")
 path2 <- "/gs7k1/home/schrieke/Fastq/tables/phyloseq_plot"
 setwd(path2)
 
-pdf("5-alpha_diversity.pdf")
+dir.create("alpha-diversity")
+path3 <- "D:/data/phyloseq_plot/alpha-diversity"
+setwd(path3)
+
+pdf("alpha_diversity.pdf")
 plot_richness(ps, measures=c("Shannon", "Simpson"), color="LOCATION")
 dev.off()
 
+setwd(path2)
 
 # Bray-Curtis NMDS with otu_norm
 ps.prop <- transform_sample_counts(ps, function(otu_norm) otu_norm/sum(otu_norm))
 ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance="bray")
 
-pdf("6-NMDS-location-norm.pdf")
+dir.create("NMDS-norm")
+path3 <- "D:/data/phyloseq_plot/NMDS-norm"
+setwd(path3)
+                                   
+pdf("NMDS-location-norm.pdf")
 plot_ordination(ps.prop, ord.nmds.bray, color="LOCATION", title="Bray NMDS (location)", label="SAMPLE")
 dev.off()
 
-pdf("7-NMDS-date-norm.pdf")
+pdf("NMDS-date-norm.pdf")
 plot_ordination(ps.prop, ord.nmds.bray, color="DATE", title="Bray NMDS (date)", label="SAMPLE")
 dev.off()
 
-pdf("8-NMDS-organism-norm.pdf")
+pdf("NMDS-organism-norm.pdf")
 plot_ordination(ps.prop, ord.nmds.bray, color="ORGANISM", title="Bray NMDS (organism)", label="SAMPLE")
 dev.off()
 
+setwd(path2)
                                    
 # Bray-Curtis NMDS with otu_log
 ps2.prop <- transform_sample_counts(ps2, function(otu_log) otu_log/sum(otu_log))
 ord.nmds.bray <- ordinate(ps2.prop2, method="NMDS", distance="bray")
 
-pdf("6-NMDS-location-log.pdf")
-plot_ordination(ps.prop, ord.nmds.bray, color="LOCATION", title="Bray NMDS (location)", label="SAMPLE")
+dir.create("NMDS-log")
+path3 <- "D:/data/phyloseq_plot/NMDS-log"
+setwd(path3)
+                                    
+pdf("NMDS-location-log.pdf")
+plot_ordination(ps2.prop, ord.nmds.bray, color="LOCATION", title="Bray NMDS (location)", label="SAMPLE")
 dev.off()
 
-pdf("7-NMDS-date-log.pdf")
-plot_ordination(ps.prop, ord.nmds.bray, color="DATE", title="Bray NMDS (date)", label="SAMPLE")
+pdf("NMDS-date-log.pdf")
+plot_ordination(ps2.prop, ord.nmds.bray, color="DATE", title="Bray NMDS (date)", label="SAMPLE")
 dev.off()
 
-pdf("8-NMDS-organism-log.pdf")
-plot_ordination(ps.prop, ord.nmds.bray, color="ORGANISM", title="Bray NMDS (organism)", label="SAMPLE")
+pdf("NMDS-organism-log.pdf")
+plot_ordination(ps2.prop, ord.nmds.bray, color="ORGANISM", title="Bray NMDS (organism)", label="SAMPLE")
 dev.off()
 
 setwd(path) 
