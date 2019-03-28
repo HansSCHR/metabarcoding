@@ -26,9 +26,26 @@ otu_norm <- as.matrix(otu_norm)
 otu_log <- log(otu +1)
 otu_log <- as.matrix(otu_log)
 
+# DEseq2
+rownames(metadata)
+colnames(otu)
+
+otu2 <- otu[,c(1:96)]
+colnames(otu2)
+
+metadata2 <- metadata[order(metadata$SAMPLE),]
+metadata2 <- metadata2[,c(2:9)]
+
+sort(metadata2)
+ncol(otu2)
+nrow(metadata)
+
+otu2 <- sort(otu2)
 library(DESeq2)
-dds <- DESeqDataSetFromMatrix(countData=otu, colData=metadata, design=~DATE+LOCALISATION+ORGANISM,tidy = TRUE) #bug for now
+dds <- DESeqDataSetFromMatrix(countData=otu2, colData=metadata2, design=~DATE)
 dds <- DESeq(dds)
+
+
 
 # Phyloseq installation
 #source('http://bioconductor.org/biocLite.R')
