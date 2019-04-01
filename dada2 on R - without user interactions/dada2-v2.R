@@ -8,12 +8,6 @@ library(dada2); packageVersion("dada2")
 
 ### FUNCTIONS ### 
 
-#setpath <- function(path, run){
-  # a <- sprintf("%s", run)
-  path
-  run <- setwd(file.path(path, run))
-}
-
 plot <- function(path, name, plotype, x, y){
   folder <- sprintf("%s", name)
   dir.create(folder)
