@@ -5,6 +5,9 @@
 
 library(dada2); packageVersion("dada2")
 
+
+### FUNCTIONS ### 
+
 #setpath <- function(path, run){
   # a <- sprintf("%s", run)
   path
@@ -71,7 +74,6 @@ dada2 <- function(path, run){
   
   plot(path,"plot-quality", "quality", forward, reverse)
 
-
   filtForward <- file.path(path, "filtered", paste0(sample.names, "_F_filt.fastq.gz"))
   filtReverse <- file.path(path, "filtered", paste0(sample.names, "_R_filt.fastq.gz"))
   
@@ -80,15 +82,11 @@ dada2 <- function(path, run){
                        compress=TRUE, multithread=TRUE)
   head(out)
 
-
-
   errForward <- learnErrors(filtForward, multithread=TRUE)
   errReverse <- learnErrors(filtReverse, multithread=TRUE)
   
   
   plot (path, "plot-error", "error", errForward, errReverse)
-
-
 
   # Dereplication
   derepForward <- derepFastq(filtForward, verbose=TRUE)
@@ -97,19 +95,13 @@ dada2 <- function(path, run){
   names(derepForward) <- sample.names
   names(derepReverse) <- sample.names
 
-
-
   dadaForward <- dada(derepForward, err=errForward, multithread=TRUE)
   dadaReverse <- dada(derepReverse, err=errReverse, multithread=TRUE)
-
-
 
   mergers <- mergePairs(dadaForward, derepForward, dadaReverse, derepReverse, verbose=TRUE)
   head(mergers[[1]])
   print("Reads merged.")
-
-
-
+  
   seqtab <- makeSequenceTable(mergers)
   
   # Remove chimeras
@@ -122,8 +114,6 @@ dada2 <- function(path, run){
   write.table(t(seqtab.nochim),  "seqtabnochim.csv", sep=";", dec=",")
   print("Seqtable done.")
 
-
-
   getN <- function(x) sum(getUniques(x))
   track <- cbind(out, sapply(dadaForward, getN), sapply(dadaReverse, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
   
@@ -135,8 +125,6 @@ dada2 <- function(path, run){
   write.table(track,"stats.csv",sep=";",dec=",") 
   print("Stats done.")
 
-
-
   taxa <- assignTaxonomy(seqtab.nochim, file.path(path, "silva_nr_v132_train_set.fa.gz"), multithread=TRUE)
   taxa <- addSpecies(taxa, file.path(path, "silva_species_assignment_v132.fa.gz"))
   
@@ -147,6 +135,10 @@ dada2 <- function(path, run){
   print ("Taxonomy done.")
 }
 
+
+
+
+### MAIN ### 
 
 path = "D:/data"
 setwd(path)
