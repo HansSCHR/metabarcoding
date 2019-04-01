@@ -33,6 +33,7 @@ colnames(otu)
 otu2 <- otu[,c(1:96)]
 colnames(otu2)
 
+
 metadata2 <- metadata[order(metadata$SAMPLE),]
 metadata2 <- metadata2[,c(2:9)]
 
@@ -41,9 +42,21 @@ ncol(otu2)
 nrow(metadata)
 
 otu2 <- sort(otu2)
+otu2<- otu2+1 #allow to remove the zero --> DESeq doesn't work with zero 
+
 library(DESeq2)
-dds <- DESeqDataSetFromMatrix(countData=otu2, colData=metadata2, design=~DATE)
+dds <- DESeqDataSetFromMatrix(countData=otu2, colData=metadata2, design=~DATE+LOCATION+ORGANISM)
 dds <- DESeq(dds)
+ts <- counts(dds, normalized=TRUE)
+
+setwd(path2)
+dir.create("DESeq")
+path3 <- "D:/data/phyloseq_plot/DESeq"
+setwd(path3)
+
+pdf("dispersion-plot-DESeq.pdf")
+plotDispEsts(dds, main="Dispersion plot")
+dev.off
 
 
 
@@ -133,7 +146,11 @@ setwd(path)
 library(vegan)
 library(dist)
 dist.jac <- vegdist(otu_norm, method="jaccard", binary=TRUE)
-adonis(formula = dist.jac, ps, data = metadata, permutation = 9999)
+dist.jac <- as.matrix(dist.jac)
+metadata <- as.data.frame(metadata)
+as.recursive(ps)
+is.atomic(ps)
+adonis(formula = dist.jac ~LOCATION, data=metadata2, permutation = 9999)
                                     
                                     
 # Save the session
