@@ -103,7 +103,7 @@ dada2 <- function(path, run){
   dim(seqtab.nochim)
   sum(seqtab.nochim)/sum(seqtab)
   
-  # csv
+  # seqtable csv
   write.table(t(seqtab),  "seqtab.csv", sep=";", dec=",")
   write.table(t(seqtab.nochim),  "seqtabnochim.csv", sep=";", dec=",")
   print("Seqtable done.")
@@ -115,7 +115,7 @@ dada2 <- function(path, run){
   rownames(track) <- sample.names
   head(track)
   
-  # csv
+  # stats csv
   write.table(track,"stats.csv",sep=";",dec=",") 
   print("Stats done.")
 
@@ -125,6 +125,8 @@ dada2 <- function(path, run){
   taxa.print <- taxa # Removing sequence rownames for display only
   rownames(taxa.print) <- NULL
   head(taxa.print)
+  
+  # taxa csv
   write.table(taxa,"taxa.csv",sep=";",dec=",")
   print ("Taxonomy done.")
 }
