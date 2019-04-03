@@ -1,12 +1,12 @@
 # Phyloseq 
 # SCHRIEKE Hans
 
-# Set work directory 
+# SET WORK DIRECTORY 
 path <- "/gs7k1/home/schrieke/Fastq/tables"
 setwd(path)
 
 
-# Data import : OTU table, taxa table and data frame (metadata)
+# DATA IMPORT : OTU table, taxa table and data frame (metadata)
 otu <- read.csv("seqtabnochim.csv", sep=";", dec=",")
 taxa <- read.csv("taxa.csv", sep=";", dec=",")
 metadata <- read.csv("metadata_run1.csv", sep=",", row.names = 1)
@@ -25,6 +25,13 @@ otu_norm <- as.matrix(otu_norm)
 
 otu_log <- log(otu +1)
 otu_log <- as.matrix(otu_log)
+
+
+# Normalization (%)
+
+otu_percent <- (otu*100/colSums(otu))
+as.matrix(otu_percent)
+
 
 # DEseq2
 rownames(metadata)
@@ -60,29 +67,32 @@ dev.off
 
 
 
-# Phyloseq installation
+# PHYLOSEQ INSTALLATION
 #source('http://bioconductor.org/biocLite.R')
 #biocLite('phyloseq')
 
 
-# Phyloseq and ggplot2 loading 
+# PHYLOSEQ AND GGPLOT 2 LOADING
 library(phyloseq); packageVersion("phyloseq")
 library(ggplot2); packageVersion("ggplot2")
 
 theme_set(theme_bw()) #set ggplot2 graphic theme 
 
 
-# Phyloseq object creation
+# PHYLOSEQ OBJECT CREATION
 OTU = otu_table(otu, taxa_are_rows = TRUE)
 OTU2 = otu_table(otu_log, taxa_are_rows = TRUE)
+OTU3 = otu_table(otu_percent, taxa_are_rows = TRUE)
+
 TAX = tax_table(taxa)
 SAM = sample_data(metadata)
 
 ps <- phyloseq(OTU, TAX, SAM) 
 ps2 <- phyloseq(OTU2, TAX, SAM)
+ps3 <- phyloseq(OTU3, TAX, SAM)
 
 
-# Alpha diversity plot 
+# ALPHA DIVERSITY PLOT 
 dir.create("phyloseq_plot")
 path2 <- "/gs7k1/home/schrieke/Fastq/tables/phyloseq_plot"
 setwd(path2)
@@ -97,7 +107,8 @@ dev.off()
 
 setwd(path2)
 
-# Bray-Curtis NMDS with otu_norm
+
+# BRAY CURTIS NMDS with OTU_NORM
 ps.prop <- transform_sample_counts(ps, function(otu_norm) otu_norm/sum(otu_norm))
 ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance="bray")
 
@@ -118,10 +129,11 @@ plot_ordination(ps.prop, ord.nmds.bray, color="ORGANISM", title="Bray NMDS (orga
 dev.off()
 
 setwd(path2)
+                      
                                    
-# Bray-Curtis NMDS with otu_log
+# BRAY CURTIS NMDS with OTU_LOG
 ps2.prop <- transform_sample_counts(ps2, function(otu_log) otu_log/sum(otu_log))
-ord.nmds.bray <- ordinate(ps2.prop2, method="NMDS", distance="bray")
+ord.nmds.bray <- ordinate(ps2.prop, method="NMDS", distance="bray")
 
 dir.create("NMDS-log")
 path3 <- "/gs7k1/home/schrieke/Fastq/tables/phyloseq_plot/NMDS-log"
@@ -139,10 +151,33 @@ pdf("NMDS-organism-log.pdf")
 plot_ordination(ps2.prop, ord.nmds.bray, color="ORGANISM", title="Bray NMDS (organism)", label="SAMPLE")
 dev.off()
 
-setwd(path) 
+setwd(path2) 
 
                                     
-# Adonis 
+# BRAY CURTIS NMDS with OTU_PERCENT
+ps3.prop <- transform_sample_counts(ps3, function(otu_percent) otu_log/sum(otu_percent))
+ord.nmds.bray <- ordinate(ps3.prop, method="NMDS", distance="bray")
+
+dir.create("NMDS-percent")
+path3 <- "/gs7k1/home/schrieke/Fastq/tables/phyloseq_plot/NMDS-percent"
+setwd(path3)
+                                    
+pdf("NMDS-location-percent.pdf")
+plot_ordination(ps2.prop, ord.nmds.bray, color="LOCATION", title="Bray NMDS (location)", label="SAMPLE")
+dev.off()
+
+pdf("NMDS-date-percent.pdf")
+plot_ordination(ps2.prop, ord.nmds.bray, color="DATE", title="Bray NMDS (date)", label="SAMPLE")
+dev.off()
+
+pdf("NMDS-organism-percent.pdf")
+plot_ordination(ps2.prop, ord.nmds.bray, color="ORGANISM", title="Bray NMDS (organism)", label="SAMPLE")
+dev.off()
+
+setwd(path) 
+        
+                                    
+# ADONIS 
 library(vegan)
 library(dist)
 dist.jac <- vegdist(otu_norm, method="jaccard", binary=TRUE)
@@ -153,7 +188,7 @@ is.atomic(ps)
 adonis(formula = dist.jac ~LOCATION, data=metadata2, permutation = 9999)
                                     
                                     
-# Save the session
+# SAVE SESSION
 install.packages("session", repos = "http://cran.us.r-project.org")
 library(session)
 save.session("phyloseq.Rda")
