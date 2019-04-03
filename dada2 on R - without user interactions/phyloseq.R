@@ -80,6 +80,7 @@ theme_set(theme_bw()) #set ggplot2 graphic theme
 
 
 # PHYLOSEQ OBJECT CREATION
+OTU0 = otu_table(otu, taxa_are_rows =TRUE) # without normalization
 OTU = otu_table(otu, taxa_are_rows = TRUE)
 OTU2 = otu_table(otu_log, taxa_are_rows = TRUE)
 OTU3 = otu_table(otu_percent, taxa_are_rows = TRUE)
@@ -87,6 +88,7 @@ OTU3 = otu_table(otu_percent, taxa_are_rows = TRUE)
 TAX = tax_table(taxa)
 SAM = sample_data(metadata)
 
+ps0 <- phyloseq(OTU0, TAX, SAM) # without normalization
 ps <- phyloseq(OTU, TAX, SAM) 
 ps2 <- phyloseq(OTU2, TAX, SAM)
 ps3 <- phyloseq(OTU3, TAX, SAM)
@@ -186,6 +188,59 @@ metadata <- as.data.frame(metadata)
 as.recursive(ps)
 is.atomic(ps)
 adonis(formula = dist.jac ~LOCATION, data=metadata2, permutation = 9999)
+                                    
+# RAREFACTION CURVE
+
+library(dplyr)
+library(vegan)
+library(magrittr)
+
+
+amp_rarecurve <- function(data, step = 100, ylim = NULL, xlim = NULL, label = F, color = NULL, legend = T, color.vector = NULL, legend.position = "topleft"){
+  
+  abund = otu_table(data)@.Data %>% as.data.frame()
+  
+  if (!is.null(color)) {
+    gg_color_hue <- function(n) {
+      hues = seq(15, 375, length=n+1)
+      hcl(h=hues, l=65, c=100)[1:n]
+    }
+    group_vector<-sample_data(data)[,color]@.Data %>% as.data.frame()
+    names(group_vector)<-"color_variable"
+    group_vector<-as.character(group_vector$color_variable)
+    groups<-unique(group_vector)
+    n = length(groups)
+    cols = gg_color_hue(n)
+    if (!is.null(color.vector)){ cols <- color.vector}
+    
+    col_vector<-rep("black",length(group_vector))
+    for (i in 1:length(group_vector)){
+      col_vector[i]<-cols[match(group_vector[i],groups)]
+    }
+  } else {
+    col_vector = "black"
+  }
+  
+  if (is.null(ylim) & is.null(xlim)){
+    rarecurve(t(abund), step = step, label = label, col = col_vector)
+  }
+  if (!is.null(ylim) & !is.null(xlim)){
+    rarecurve(t(abund), step = step, ylim = ylim, xlim = xlim, label = label, col = col_vector)
+  }
+  if (!is.null(ylim) & is.null(xlim)){
+    rarecurve(t(abund), step = step, ylim = ylim, label = label, col = col_vector)
+  }
+  if (is.null(ylim) & !is.null(xlim)){
+    rarecurve(t(abund), step = step, xlim = xlim, label = label, col = col_vector)
+  }
+  
+  if (!is.null(color) & legend == T){
+    legend(legend.position,legend = groups,fill = cols, bty = "n")
+  }
+}
+                                    
+amp_rarecurve(ps0, step =10, label = T, color = "ORGANISM", legend.position = "topright")   
+                                    
                                     
                                     
 # SAVE SESSION
