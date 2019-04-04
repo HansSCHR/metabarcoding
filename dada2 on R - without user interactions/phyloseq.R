@@ -240,7 +240,23 @@ amp_rarecurve <- function(data, step = 100, ylim = NULL, xlim = NULL, label = F,
 }
                                     
 amp_rarecurve(ps0, step =10, label = T, color = "ORGANISM", legend.position = "topright")   
+ 
+amp_rarecurve(subset_samples(ps0, LOCATION =="N"),
+              step=100,
+              label = T,
+              legend.position = "bottomright",
+              legend = T)
+
+ps0.wb <- subset_samples(ps0, LOCATION != "N")
                                     
+readsumsdf = data.frame(nreads = sort(taxa_sums(ps0.wb), TRUE), sorted = 1:ntaxa(ps0.wb), 
+                                      type = "OTUs")
+
+readsumsdf = rbind(readsumsdf, data.frame(nreads = sort(sample_sums(ps0.wb), TRUE), sorted = 1:nsamples(ps0.wb), 
+                                          type = "Samples"))
+
+ggplot(readsumsdf, aes(x = sorted, y = nreads)) + geom_bar(stat = "identity") + ggtitle("Total number of reads before Preprocessing") + scale_y_log10() +
+  facet_wrap(~type, ncol = 1, scales = "free") #+ scale_y_log10()
                                     
                                     
 # SAVE SESSION
