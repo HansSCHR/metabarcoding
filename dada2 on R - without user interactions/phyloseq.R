@@ -189,74 +189,67 @@ as.recursive(ps)
 is.atomic(ps)
 adonis(formula = dist.jac ~LOCATION, data=metadata2, permutation = 9999)
                                     
+
 # RAREFACTION CURVE
+
+source('functions.R') # import amp_rarecurve, plot_composition, ggrare
 
 library(dplyr)
 library(vegan)
 library(magrittr)
 
+ps.E <- subset_samples(ps, ORGANISM == "E") # full organism 
+ps.I <- subset_samples(ps, ORGANISM == "I") # intestine
+ps.GS <- subset_samples(ps, ORGANISM == "GS") # salivary gland
+ps.O <- subset_samples(ps, ORGANISM == "O") # ovaries
+ps.P <- subset_samples(ps, ORGANISM == "P") # organs pull
+ps.T <- subset_samples(ps, LOCATION == "T") # blanks
+ps.wT <- subset_samples(ps, LOCATION != "T") # without blanks
 
-amp_rarecurve <- function(data, step = 100, ylim = NULL, xlim = NULL, label = F, color = NULL, legend = T, color.vector = NULL, legend.position = "topleft"){
-  
-  abund = otu_table(data)@.Data %>% as.data.frame()
-  
-  if (!is.null(color)) {
-    gg_color_hue <- function(n) {
-      hues = seq(15, 375, length=n+1)
-      hcl(h=hues, l=65, c=100)[1:n]
-    }
-    group_vector<-sample_data(data)[,color]@.Data %>% as.data.frame()
-    names(group_vector)<-"color_variable"
-    group_vector<-as.character(group_vector$color_variable)
-    groups<-unique(group_vector)
-    n = length(groups)
-    cols = gg_color_hue(n)
-    if (!is.null(color.vector)){ cols <- color.vector}
-    
-    col_vector<-rep("black",length(group_vector))
-    for (i in 1:length(group_vector)){
-      col_vector[i]<-cols[match(group_vector[i],groups)]
-    }
-  } else {
-    col_vector = "black"
-  }
-  
-  if (is.null(ylim) & is.null(xlim)){
-    rarecurve(t(abund), step = step, label = label, col = col_vector)
-  }
-  if (!is.null(ylim) & !is.null(xlim)){
-    rarecurve(t(abund), step = step, ylim = ylim, xlim = xlim, label = label, col = col_vector)
-  }
-  if (!is.null(ylim) & is.null(xlim)){
-    rarecurve(t(abund), step = step, ylim = ylim, label = label, col = col_vector)
-  }
-  if (is.null(ylim) & !is.null(xlim)){
-    rarecurve(t(abund), step = step, xlim = xlim, label = label, col = col_vector)
-  }
-  
-  if (!is.null(color) & legend == T){
-    legend(legend.position,legend = groups,fill = cols, bty = "n")
-  }
-}
-                                    
-amp_rarecurve(ps0, step =10, label = T, color = "ORGANISM", legend.position = "topright")   
- 
-amp_rarecurve(subset_samples(ps0, LOCATION =="N"),
+
+
+amp_rarecurve(subset_samples(ps, LOCATION =="N"),
               step=100,
               label = T,
               legend.position = "bottomright",
               legend = T)
 
-ps0.wb <- subset_samples(ps0, LOCATION != "N")
-                                    
-readsumsdf = data.frame(nreads = sort(taxa_sums(ps0.wb), TRUE), sorted = 1:ntaxa(ps0.wb), 
+
+
+readsumsdf = data.frame(nreads = sort(taxa_sums(ps.wT), TRUE), sorted = 1:ntaxa(ps.wT), 
                                       type = "OTUs")
 
-readsumsdf = rbind(readsumsdf, data.frame(nreads = sort(sample_sums(ps0.wb), TRUE), sorted = 1:nsamples(ps0.wb), 
+readsumsdf = rbind(readsumsdf, data.frame(nreads = sort(sample_sums(ps.wT), TRUE), sorted = 1:nsamples(ps.wT), 
                                           type = "Samples"))
 
-ggplot(readsumsdf, aes(x = sorted, y = nreads)) + geom_bar(stat = "identity") + ggtitle("Total number of reads before Preprocessing") + scale_y_log10() +
+ggplot(readsumsdf, aes(x = sorted, y = nreads)) + geom_bar(stat = "identity") + ggtitle("Total number of reads before Preprocessing (Sans Témoins)") + scale_y_log10() +
   facet_wrap(~type, ncol = 1, scales = "free") #+ scale_y_log10()
+
+graph2ppt(file=paste0("Preanalysis",".ppt"),append=T,width=9,aspectr=sqrt(2))
+
+
+
+
+# PLOT COMPOSITION 
+
+library(scales)
+library(reshape2)
+library(ggplot2)
+
+subset_samples(ps, LOCATION == "N") %>%
+  plot_composition("Kingdom", "Bacteria", "Species", numberOfTaxa =
+                     1000, fill = "Species")
+
+subset_samples(ps, LOCATION == "N") %>%
+  plot_richness(ps, measures=c("Observed","Shannon","ACE"))
+
+
+                                    
+# GGRARE
+
+ggrare(ps, step = 7, label = NULL, color = NULL,
+       plot = TRUE, parallel = FALSE, se = TRUE)
+                                    
                                     
                                     
 # SAVE SESSION
