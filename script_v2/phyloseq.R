@@ -4,6 +4,7 @@
 # output : rarefaction curve, distribution plot, richness plot, NMDS, PCoA, Adonis
 
 
+
 #--------------------------------------------------------------------------------------------#
 #--------------------------------------PATH SETTING------------------------------------------#
 #--------------------------------------------------------------------------------------------#
@@ -30,6 +31,9 @@ library("tidyr")
 library("viridis")
 library("reshape")
 library("DESeq2")
+library("microbiome")
+library("hrbrthemes")
+#library("dplyr")
 
 scripts <- c("graphical_methods.R",
              "tree_methods.R",
@@ -50,6 +54,12 @@ urls <-
 for (url in urls) {
   source(url)
 }
+
+url2 <- "https://raw.githubusercontent.com/mahendra-mariadassou/phyloseq-extended/master/R/graphical_methods.R"
+source(url2)
+
+
+
 
 
 #--------------------------------------------------------------------------------------------#
@@ -79,6 +89,10 @@ ps <- phyloseq(OTU, TAX, SAM)
 
 
 
+
+
+
+
 #--------------------------------------------------------------------------------------------#
 #-----------------------------------RAREFACTION CURVE----------------------------------------#
 #--------------------------------------------------------------------------------------------#
@@ -90,6 +104,7 @@ ps <- phyloseq(OTU, TAX, SAM)
 
 # method 2
 pdf("rarecurve.pdf")
+#jpeg("rarecurve.jpg")
 ggrare(ps, step = 2000, label = NULL, color = "run", plot = TRUE, parallel = FALSE, se = TRUE)
 dev.off()
 
@@ -97,6 +112,7 @@ dev.off()
 
 ### NOTE ###
 # Sample effort is good for all the samples 
+
 
 
 
@@ -125,52 +141,10 @@ readsumsdf = rbind(readsumsdf, data.frame(nreads = sort(sample_sums(ps.wB), TRUE
 
 
 pdf("distribution.pdf")
+#jpeg("distribution.jpg")
 ggplot(readsumsdf, aes(x = sorted, y = nreads)) + geom_bar(stat = "identity") + ggtitle("Total number of reads before Preprocessing (Sans Témoins)") + scale_y_log10() +
   facet_wrap(~type, ncol = 1, scales = "free") #+ scale_y_log10()
 dev.off()
-
-
-
-
-
-#--------------------------------------------------------------------------------------------#
-#----------------------------------TAXONOMIC SUMMARIES---------------------------------------#
-#--------------------------------------------------------------------------------------------#
-
-top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
-ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
-ps.top20 <- prune_taxa(top20, ps.top20)
-
-
-pdf("taxa_plot.pdf", width=20, height =10)
-plot_bar(ps.top20, x="sample", fill="Family")
-dev.off()
-
-
-# plot according to location
-pdf("taxa_plot_location.pdf", width=20, height =10)
-plot_bar(ps.top20, x="sample", fill="Family") + facet_wrap(~location, scales="free_x")
-dev.off()
-
-# plot according to condition of DNA extraction
-pdf("taxa_plot_dnafrom.pdf", width=20, height =10)
-plot_bar(ps.top20, x="sample", fill="Family") + facet_wrap(~dna_from, scales="free_x")
-dev.off()
-
-
-### NOTE ###
-# We can see that the taxonomic composition changes with the location and the condition of DNA extraction
-# It's interesting!
-
-# Taxa_plot_location :
-# Anaplasmataceae family is present everywhere except in Labo Tetracycline
-# Acetobacteraceae is present close everywhere but majoritary in Guadeloupe 
-# Enterobacteriaceae is present only in Lavar, Bosc and Labo Tetracycline
-
-# Taxa_plot_dnafrom :
-# Anaplasmataceae is present everywhere 
-# Ovary and Salivary gland are majoritary composed by Anaplasmataceae
-# Full_body and Intestine present the most important diversity 
 
 
 
@@ -183,14 +157,18 @@ dev.off()
 
 
 # x based on samples
-pdf("plot_richness.pdf", width=20, height=10)
-plot_richness(ps, color = "species", measures=c("Observed", "Chao1", "Shannon")) + 
+pdf("plot_richness_boxplot.pdf", width=20, height=10)
+#jpeg("plot_richness.jpg", width=20, height =10)
+plot_richness(ps, x= "run", color = "species", measures=c("Observed", "Chao1", "Shannon")) + 
+  geom_boxplot() +
   theme(legend.title = element_blank())
 dev.off()
 
 # x based on location
-pdf("plot_richness_location.pdf", width=20, height=10)
+pdf("plot_richness_location_boxplot.pdf", width=20, height=10)
+#jpeg("plot_richness_location.jpg", width=20, height =10)
 plot_richness(ps, x="location", color="run", measures=c("Observed", "Chao1", "Chao2", "Shannon")) + 
+  geom_boxplot() +
   theme(legend.title = element_blank())
 dev.off()
 
@@ -223,6 +201,10 @@ summary(results)
 
 
 
+
+
+
+
 #--------------------------------------------------------------------------------------------#
 #-------------------------------------NORMALIZATION------------------------------------------#
 #--------------------------------------------------------------------------------------------#
@@ -237,8 +219,20 @@ otu_log <- log(count_tab +1)
 
 
 # %
-otu_percent <- (count_tab*100/colSums(count_tab))
-otu_percent <- as.matrix(otu_percent)
+
+otu_percent <- cbind(0)
+for (i in 1:ncol(count_tab)){
+  otu_percent <- cbind(otu_percent,(count_tab[i]/colSums(count_tab[i]))*100)
+  #print(otu_col_percent)
+  #otu_percent2 <- cbind(otu_col_percent, otu_col_percent)
+  #otu_percent2 <- otu_percent2
+}
+
+otu_percent <- otu_percent[,-1]
+
+# (count_tab[1]/colSums(count_tab[1]))*100
+# otu_percent <- ((count_tab/colSums(count_tab))*100)
+# otu_percent <- as.matrix(otu_percent)
 
 
 # DESeq2
@@ -265,6 +259,104 @@ otu_deseq <- assay(deseq_counts_vst) # normalized otu_table with deseq
 
 
 
+
+#--------------------------------------------------------------------------------------------#
+#----------------------------------TAXONOMIC SUMMARIES---------------------------------------#
+#--------------------------------------------------------------------------------------------#
+
+
+
+
+OTU_percent <- otu_table(otu_percent, taxa_are_rows = TRUE)
+ps_percent <- phyloseq(OTU_percent, TAX, SAM)
+
+
+top20 <- names(sort(taxa_sums(ps_percent), decreasing=TRUE))[1:20]
+ps.top20 <- transform_sample_counts(ps_percent, function(OTU) OTU/sum(OTU))
+ps.top20 <- prune_taxa(top20, ps.top20)
+
+x11()
+
+pdf("taxa_plot_2.pdf", width=20, height =10)
+plot_composition(ps.top20,
+                      taxonomic.level = "Family",
+                      sample.sort = "sample",
+                      x.label = "sample") +
+  guides(fill = guide_legend(ncol = 1)) +
+  scale_y_percent() +
+  labs(x = "Samples", y = "Relative abundance (%)",
+       title = "Relative abundance data",
+       caption = "Caption text.") + 
+  theme_ipsum(grid="Y")
+dev.off()
+
+print(p)
+dev.off()
+
+
+
+p.phy <- plot_composition(ps.top20, sample.sort = NULL, otu.sort = NULL,
+                          x.label = "sample", plot.type = "barplot", verbose = FALSE)
+
+print(p.phy + scale_fill_brewer(palette = "Paired") + theme_bw())
+
+
+plot_composition(ps.top20, x.label="Family", plot.type="barplot")
+
+pdf("taxa_plot3.pdf")
+plot_composition(ps.top20, "Phylum", "Proteobacteria", "Family", 20, fill = "Family") +
+  theme_ipsum(grid="Y") +
+  theme(axis.text.x = element_text(color="#993333", 
+                                   size=5),
+        axis.text.y = element_text(color="#993333", 
+                                   size=14))
+  #geom_bar(stat="identity", color="black")
+dev.off()
+
+pdf("taxa_plot.pdf", width=20, height =10)
+#jpeg("taxa_plot.jpg", width=20, height =10)
+plot_bar(ps.top20, x="sample", fill="Family")
+dev.off()
+
+
+# plot according to location
+
+pdf("taxa_plot_location.pdf", width=20, height =10)
+#jpeg("taxa_plot_location.jpg", width=20, height =10)
+plot_bar(ps.top20, x="sample", fill="Family") + facet_wrap(~location, scales="free_x")
+dev.off()
+
+# plot according to condition of DNA extraction
+pdf("taxa_plot_dnafrom.pdf", width=20, height =10)
+#jpeg("taxa_plot_dnafrom.jpg", width=20, height =10)
+plot_bar(ps.top20, x="sample", fill="Family") + facet_wrap(~dna_from, scales="free_x")
+dev.off()
+
+
+### NOTE ###
+# We can see that the taxonomic composition changes with the location and the condition of DNA extraction
+# It's interesting!
+
+# Taxa_plot_location :
+# Anaplasmataceae family is present everywhere except in Labo Tetracycline
+# Acetobacteraceae is present close everywhere but majoritary in Guadeloupe 
+# Enterobacteriaceae is present only in Lavar, Bosc and Labo Tetracycline
+
+# Taxa_plot_dnafrom :
+# Anaplasmataceae is present everywhere 
+# Ovary and Salivary gland are majoritary composed by Anaplasmataceae
+# Full_body and Intestine present the most important diversity 
+
+
+
+
+
+
+
+
+
+
+
 #--------------------------------------------------------------------------------------------#
 #--------------------------------------ORDINATION--------------------------------------------#
 #--------------------------------------------------------------------------------------------#
@@ -282,6 +374,7 @@ ps_deseq <- phyloseq(OTU_deseq, SAM)
 
 # PCoA log (euclidean)
 pdf("PCoA_log_species.pdf")
+#jpeg("PCoA_log_species.jpg")
 plot_ordination(ps_log, ordinate(ps_log, method ="MDS", distance = "euclidean"), color = "species") +
   geom_point(size = 3) +
   ggtitle("PCoA (log normalization)")
@@ -290,6 +383,7 @@ dev.off()
 
 # PCoA deseq (euclidean)
 pdf("PCoA_deseq_species.pdf")
+#jpeg("PCoA_deseq_species.jpg")
 plot_ordination(ps_deseq, ordinate(ps_deseq, method ="MDS", distance = "euclidean"), color = "species") +
   geom_point(size = 3) +
   ggtitle("PCoA (deseq normalization)")
@@ -297,7 +391,8 @@ dev.off()
 
 
 # PCoA percent (bray)
-pdf("PCoA_percent_species.pdf")
+pdf("PCoA_percent_species_corr.pdf")
+#jpeg("PCoA_percent_species.jpg")
 plot_ordination(ps_percent, ordinate(ps_percent, method ="MDS", distance = "bray"), color = "species") +
   geom_point(size = 3) +
   ggtitle("PCoA (percent normalization)")
@@ -348,29 +443,36 @@ ord.nmds.eucOI <- ordinate(ps.propOI.euc, method="NMDS", distance="euclidean")
 # NMDS plots (euclidean)
 
 pdf("NMDS_euc_all.pdf")
+#jpeg("NMDS_euc_all.jpg")
 plot_ordination(ps.prop.euc, ord.nmds.euc, color="species", title="Euclidean NMDS (all)", label="sample") +
   geom_point(size = 3)
 dev.off()
 
 pdf("NMDS_euc_fullbody.pdf")
+#jpeg("NMDS_euc_fullbody.jpg")
 plot_ordination(ps.propF.euc, ord.nmds.eucF, color="species", title="Euclidean NMDS (full body)", label="sample") +
   geom_point(size = 3)
 dev.off()
 
 pdf("NMDS_euc_intestine.pdf")
+#jpeg("NMDS_euc_intestine.jpg")
 plot_ordination(ps.propI.euc, ord.nmds.eucI, color="species", shape="species", title="Euclidean NMDS (intestine)", label="sample") +
   geom_point(size = 3)
 dev.off()
 
 pdf("NMDS_euc_ovary.pdf")
+#jpeg("NMDS_euc_ovary.jpg")
 plot_ordination(ps.propO.euc, ord.nmds.eucO, color="species", title="Euclidean NMDS (ovary)", label="sample") +
   geom_point(size = 3)
 dev.off()
 
 pdf("NMDS_euc_ovary_intestine.pdf")
+#jpeg("NMDS_euc_ovary_intestine.jpg")
 plot_ordination(ps.propOI.euc, ord.nmds.eucOI, color="species", title="Euclidean NMDS (ovary+intestine)", label="sample")+
   geom_point(size = 3)
 dev.off()
+
+
 
 
 
@@ -400,26 +502,31 @@ ord.nmds.brayOI <- ordinate(ps.propOI, method="NMDS", distance="bray")
 # NMDS plots (bray)
 
 pdf("NMDS_bray_all.pdf")
+#jpeg("NMDS_bray_all.jpg")
 plot_ordination(ps.prop, ord.nmds.bray, color="species", title="Bray NMDS (all)", label="sample") +
   geom_point(size = 3)
 dev.off()
 
 pdf("NMDS_bray_fullbody.pdf")
+#jpeg("NMDS_bray_fullbody.jpg")
 plot_ordination(ps.propF, ord.nmds.brayF, color="species", title="Bray NMDS (full body)", label="sample") +
   geom_point(size = 3)
 dev.off()
 
 pdf("NMDS_bray_intestine.pdf")
+#jpeg("NMDS_bray_intestine.jpg")
 plot_ordination(ps.propI, ord.nmds.brayI, color="species", shape="species", title="Bray NMDS (intestine)", label="sample") +
   geom_point(size = 3)
 dev.off()
 
 pdf("NMDS_bray_ovary.pdf")
+#jpeg("NMDS_bray_ovary.jpg")
 plot_ordination(ps.propO, ord.nmds.brayO, color="species", title="Bray NMDS (ovary)", label="sample") +
   geom_point(size = 3)
 dev.off()
 
-pdf("NMDS_bray_ovary_intestine.pdf")
+#pdf("NMDS_bray_ovary_intestine.pdf")
+jpeg("NMDS_bray_ovary_intestine.jpg")
 plot_ordination(ps.propOI, ord.nmds.brayOI, color="species", title="Bray NMDS (ovary+intestine)", label="sample") +
   geom_point(size = 3)
 dev.off()
