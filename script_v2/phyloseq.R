@@ -103,9 +103,9 @@ ps <- phyloseq(OTU, TAX, SAM)
 
 
 # method 2
-pdf("rarecurve.pdf")
+pdf("rarecurve2.pdf")
 #jpeg("rarecurve.jpg")
-ggrare(ps, step = 2000, label = NULL, color = "run", plot = TRUE, parallel = FALSE, se = TRUE)
+ggrare(ps, step = 100, label = NULL, color = "true_or_blank", plot = TRUE, parallel = FALSE, se = TRUE)
 dev.off()
 
 
@@ -275,7 +275,6 @@ top20 <- names(sort(taxa_sums(ps_percent), decreasing=TRUE))[1:20]
 ps.top20 <- transform_sample_counts(ps_percent, function(OTU) OTU/sum(OTU))
 ps.top20 <- prune_taxa(top20, ps.top20)
 
-x11()
 
 pdf("taxa_plot_2.pdf", width=20, height =10)
 plot_composition(ps.top20,
@@ -290,18 +289,14 @@ plot_composition(ps.top20,
   theme_ipsum(grid="Y")
 dev.off()
 
-print(p)
-dev.off()
 
-
-
-p.phy <- plot_composition(ps.top20, sample.sort = NULL, otu.sort = NULL,
-                          x.label = "sample", plot.type = "barplot", verbose = FALSE)
-
-print(p.phy + scale_fill_brewer(palette = "Paired") + theme_bw())
-
-
-plot_composition(ps.top20, x.label="Family", plot.type="barplot")
+# p.phy <- plot_composition(ps.top20, sample.sort = NULL, otu.sort = NULL,
+#                           x.label = "sample", plot.type = "barplot", verbose = FALSE)
+# 
+# print(p.phy + scale_fill_brewer(palette = "Paired") + theme_bw())
+# 
+# 
+# plot_composition(ps.top20, x.label="Family", plot.type="barplot")
 
 pdf("taxa_plot3.pdf")
 plot_composition(ps.top20, "Phylum", "Proteobacteria", "Family", 20, fill = "Family") +
@@ -313,10 +308,13 @@ plot_composition(ps.top20, "Phylum", "Proteobacteria", "Family", 20, fill = "Fam
   #geom_bar(stat="identity", color="black")
 dev.off()
 
+
+
 pdf("taxa_plot.pdf", width=20, height =10)
 #jpeg("taxa_plot.jpg", width=20, height =10)
 plot_bar(ps.top20, x="sample", fill="Family")
 dev.off()
+
 
 
 # plot according to location
@@ -407,7 +405,14 @@ dev.off()
 
 
 
+# Pick data subset (DI samples from Phylum Bacteroidetes)
+pseq2 <- ps_percent %>%
+  subset_taxa(Phylum == "Bacteroidetes")
 
+
+# Z transformed abundance data
+pseqz <- microbiome::transform(pseq2, "log10p")
+heat(melt(abundances(pseqz)), "Var1", "Var2", "value")
 
 
 
