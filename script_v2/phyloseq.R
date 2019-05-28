@@ -13,9 +13,10 @@ path = "D:/stage/data/runs_new"
 setwd(path)
 
 dir.create("plot") # folder for plot
-path2 <- "D:/stage/data/runs_new/plot"
+path2 <- "D:/stage/data/runs_new/plotv2"
 
-
+path3 <- "D:/stage/data/runs_new/decontam_avec_sequence"
+setwd(path3)
 
 
 #--------------------------------------------------------------------------------------------#
@@ -31,8 +32,9 @@ library("tidyr")
 library("viridis")
 library("reshape")
 library("DESeq2")
-library("microbiome")
-library("hrbrthemes")
+library("plotly")
+#library("microbiome")
+#library("hrbrthemes")
 #library("dplyr")
 
 scripts <- c("graphical_methods.R",
@@ -55,8 +57,8 @@ for (url in urls) {
   source(url)
 }
 
-url2 <- "https://raw.githubusercontent.com/mahendra-mariadassou/phyloseq-extended/master/R/graphical_methods.R"
-source(url2)
+#url2 <- "https://raw.githubusercontent.com/mahendra-mariadassou/phyloseq-extended/master/R/graphical_methods.R"
+#source(url2)
 
 
 
@@ -88,9 +90,39 @@ SAM <- sample_data(metadata)
 ps <- phyloseq(OTU, TAX, SAM)
 
 
+ps <- subset_taxa(ps, Kingdom == "Bacteria")
+ps.wtna <- subset_taxa(ps, Kingdom == "Bacteria" & !is.na(Phylum) & !is.na(Class))
+
+
+otu <- as(otu_table(ps), "matrix")
+otu <- as.data.frame(otu)
 
 
 
+#--------------------------------------------------------------------------------------------#
+#------------------------------REMOVE SAMPLES WITHOUT READS----------------------------------#
+#--------------------------------------------------------------------------------------------#
+
+
+for (i in 1:ncol(otu)){
+  #print(i)
+  if (sum(otu[,i])==0){
+    print(names(otu[i]))
+  }
+}
+
+ps <- subset_samples(ps, sample != "NP16")
+ps.wtna <- subset_samples(ps.wtna, sample != "NP16")
+
+count_tab_ps <- as(otu_table(ps), "matrix")
+count_tab_ps <- as.data.frame(count_tab_ps)
+
+metadata <- sample_data(ps)
+metadata <- as.data.frame(metadata)
+SAM <- sample_data(metadata)
+
+count_tab_ps.wtna <- as(otu_table(ps.wtna), "matrix")
+count_tab_ps.wtna <- as.data.frame(count_tab_ps.wtna)
 
 
 #--------------------------------------------------------------------------------------------#
@@ -103,10 +135,13 @@ ps <- phyloseq(OTU, TAX, SAM)
 
 
 # method 2
+setwd(path2)
+
 pdf("rarecurve2.pdf")
 #jpeg("rarecurve.jpg")
 ggrare(ps, step = 100, label = NULL, color = "true_or_blank", plot = TRUE, parallel = FALSE, se = TRUE)
 dev.off()
+
 
 
 
@@ -210,26 +245,44 @@ summary(results)
 #--------------------------------------------------------------------------------------------#
 
 
+
 # Min/Max
-otu_norm <- (count_tab -min(count_tab))/(max(count_tab)-min(count_tab))
+otu_norm <- (count_tab_ps -min(count_tab_ps))/(max(count_tab_ps)-min(count_tab_ps))
 
 
 # Log
-otu_log <- log(count_tab +1)
+otu_log <- log(count_tab_ps +1)
 
 
 # %
 
-otu_percent <- cbind(0)
-for (i in 1:ncol(count_tab)){
-  otu_percent <- cbind(otu_percent,(count_tab[i]/colSums(count_tab[i]))*100)
+class(count_tab_ps)
+count_tab_ps <- as.data.frame(count_tab_ps)
+count_tab_ps.wtna <- as.data.frame(count_tab_ps.wtna)
+
+otu_percent_ps <- cbind(0)
+for (i in 1:ncol(count_tab_ps)){
+  otu_percent_ps <- cbind(otu_percent_ps,(count_tab_ps[i]/colSums(count_tab_ps[i]))*100)
   #print(otu_col_percent)
   #otu_percent2 <- cbind(otu_col_percent, otu_col_percent)
   #otu_percent2 <- otu_percent2
 }
 
-otu_percent <- otu_percent[,-1]
+otu_percent_ps <- otu_percent_ps[,-1]
 
+otu_percent_ps.wtna <- cbind(0)
+for (i in 1:ncol(count_tab_ps.wtna)){
+  otu_percent_ps_wtna <- cbind(otu_percent_ps.wtna,(count_tab_ps.wtna[i]/colSums(count_tab_ps.wtna[i]))*100)
+  #print(otu_col_percent)
+  #otu_percent2 <- cbind(otu_col_percent, otu_col_percent)
+  #otu_percent2 <- otu_percent2
+}
+
+otu_percent_ps.wtna <- otu_percent_ps.wtna[,-1]
+
+#otu_percent <- (count_tab/sum(count_tab))
+
+sum(count_tab)
 # (count_tab[1]/colSums(count_tab[1]))*100
 # otu_percent <- ((count_tab/colSums(count_tab))*100)
 # otu_percent <- as.matrix(otu_percent)
@@ -237,9 +290,9 @@ otu_percent <- otu_percent[,-1]
 
 # DESeq2
 rownames(metadata)
-colnames(count_tab)
+colnames(count_tab_ps)
 
-otu2 <- as.matrix(count_tab)
+otu2 <- as.matrix(count_tab_ps)
 otu2 <- (otu2+1) # allows to remove the zero --> DESeq doesn't work with zero 
 
 ncol(otu2) # check up
@@ -247,7 +300,8 @@ nrow(metadata) # check up
 
 #otu_deseq <- counts(dds, normalized=TRUE) # normalized otu with deseq
 
-count_tab2 <- (count_tab+1)
+count_tab2 <- (count_tab_ps+1)
+metadata <- as.matrix(metadata)
 
 deseq_counts <- DESeqDataSetFromMatrix(otu2, colData = metadata, design = ~dna_from)
 deseq_counts_vst <- varianceStabilizingTransformation(deseq_counts)
@@ -265,70 +319,123 @@ otu_deseq <- assay(deseq_counts_vst) # normalized otu_table with deseq
 #--------------------------------------------------------------------------------------------#
 
 
+# BEFORE TAXONOMIC PLOT : 
+# eukaryotae removed 
+# archae removed (1)
+# sequences with 0 reads removed from the new phyloseq object
 
 
-OTU_percent <- otu_table(otu_percent, taxa_are_rows = TRUE)
+
+OTU_percent <- otu_table(otu_percent_ps, taxa_are_rows = TRUE)
+OTU_percent_ps.wtna <- otu_table(otu_percent_ps.wtna, taxa_are_rows = TRUE)
+
 ps_percent <- phyloseq(OTU_percent, TAX, SAM)
+ps_percent_ps.wtna <- phyloseq(OTU_percent_ps.wtna, TAX, SAM)
 
 
-top20 <- names(sort(taxa_sums(ps_percent), decreasing=TRUE))[1:20]
-ps.top20 <- transform_sample_counts(ps_percent, function(OTU) OTU/sum(OTU))
-ps.top20 <- prune_taxa(top20, ps.top20)
+# WITH BACTERIA NA 
+# plot_composition depending on run
+p <- plot_composition(ps_percent,"Kingdom" ,"Bacteria" , "Family" , 20, fill="Phylum") + 
+  eval(facet_wrap(~run, scales = "free_x", nrow = 1)) + 
+  theme(plot.title = element_text(hjust = 0.5)) 
 
+pdf("taxa_plot_run.pdf")
+ggplotly(p, tooltip = c("x", "y", "fill"))
+dev.off()
 
-pdf("taxa_plot_2.pdf", width=20, height =10)
-plot_composition(ps.top20,
-                      taxonomic.level = "Family",
-                      sample.sort = "sample",
-                      x.label = "sample") +
-  guides(fill = guide_legend(ncol = 1)) +
-  scale_y_percent() +
-  labs(x = "Samples", y = "Relative abundance (%)",
-       title = "Relative abundance data",
-       caption = "Caption text.") + 
-  theme_ipsum(grid="Y")
+# plot_composition depending on location
+p2 <- plot_composition(ps_percent,"Kingdom" ,"Bacteria" , "Family" , 20, fill="Phylum") + 
+  eval(facet_wrap(~location, scales = "free_x", nrow = 1)) + 
+  theme(plot.title = element_text(hjust = 0.5)) 
+
+pdf("taxa_plot_location.pdf")
+ggplotly(p2, tooltip = c("x", "y", "fill"))
 dev.off()
 
 
-# p.phy <- plot_composition(ps.top20, sample.sort = NULL, otu.sort = NULL,
-#                           x.label = "sample", plot.type = "barplot", verbose = FALSE)
+# WITHOUT BACTERIA NA 
+# plot_composition depending on run
+p <- plot_composition(ps_percent_ps.wtna,"Kingdom" ,"Bacteria" , "Family" , 20, fill="Phylum") + 
+  eval(facet_wrap(~run, scales = "free_x", nrow = 1)) + 
+  theme(plot.title = element_text(hjust = 0.5)) 
+
+pdf("taxa_plot_run_wtna.pdf")
+ggplotly(p, tooltip = c("x", "y", "fill"))
+dev.off()
+
+# plot_composition depending on location
+p2 <- plot_composition(ps_percent_ps.wtna,"Kingdom" ,"Bacteria" , "Family" , 20, fill="Phylum") + 
+  eval(facet_wrap(~location, scales = "free_x", nrow = 1)) + 
+  theme(plot.title = element_text(hjust = 0.5)) 
+
+pdf("taxa_plot_location_wtna.pdf")
+ggplotly(p2, tooltip = c("x", "y", "fill"))
+dev.off()
+
+
+
+
+# top20 <- names(sort(taxa_sums(ps_percent), decreasing=TRUE))[1:20]
+# ps.top20 <- transform_sample_counts(ps_percent, function(OTU) OTU/sum(OTU))
+# ps.top20 <- prune_taxa(top20, ps.top20)
 # 
-# print(p.phy + scale_fill_brewer(palette = "Paired") + theme_bw())
+# 
+# p <- plot_bar(ps.top20,fill="Phylum") + facet_wrap(~run, scales = "free_x", nrow = 1) + ggtitle("Bar plot colored by Phylum ")+ theme(plot.title = element_text(hjust = 0.5))
+# plot(p)
 # 
 # 
-# plot_composition(ps.top20, x.label="Family", plot.type="barplot")
-
-pdf("taxa_plot3.pdf")
-plot_composition(ps.top20, "Phylum", "Proteobacteria", "Family", 20, fill = "Family") +
-  theme_ipsum(grid="Y") +
-  theme(axis.text.x = element_text(color="#993333", 
-                                   size=5),
-        axis.text.y = element_text(color="#993333", 
-                                   size=14))
-  #geom_bar(stat="identity", color="black")
-dev.off()
-
-
-
-pdf("taxa_plot.pdf", width=20, height =10)
-#jpeg("taxa_plot.jpg", width=20, height =10)
-plot_bar(ps.top20, x="sample", fill="Family")
-dev.off()
-
-
-
-# plot according to location
-
-pdf("taxa_plot_location.pdf", width=20, height =10)
-#jpeg("taxa_plot_location.jpg", width=20, height =10)
-plot_bar(ps.top20, x="sample", fill="Family") + facet_wrap(~location, scales="free_x")
-dev.off()
-
-# plot according to condition of DNA extraction
-pdf("taxa_plot_dnafrom.pdf", width=20, height =10)
-#jpeg("taxa_plot_dnafrom.jpg", width=20, height =10)
-plot_bar(ps.top20, x="sample", fill="Family") + facet_wrap(~dna_from, scales="free_x")
-dev.off()
+# pdf("taxa_plot_2.pdf", width=20, height =10)
+# plot_composition(ps.top20,
+#                       taxonomic.level = "Family",
+#                       sample.sort = "location",
+#                       x.label = "location") +
+#   guides(fill = guide_legend(ncol = 1)) +
+#   scale_y_percent() +
+#   labs(x = "Samples", y = "Relative abundance (%)",
+#        title = "Relative abundance data",
+#        caption = "") + 
+#   theme_ipsum(grid="Y")
+# dev.off()
+# 
+# 
+# # p.phy <- plot_composition(ps.top20, sample.sort = NULL, otu.sort = NULL,
+# #                           x.label = "sample", plot.type = "barplot", verbose = FALSE)
+# # 
+# # print(p.phy + scale_fill_brewer(palette = "Paired") + theme_bw())
+# # 
+# # 
+# # plot_composition(ps.top20, x.label="Family", plot.type="barplot")
+# 
+# pdf("taxa_plot3.pdf")
+# p3 <- plot_composition(ps.top20, "Kingdom", "Bacteria", "Family", 20, fill = "Family")+ 
+#   eval(facet_wrap(~run, scales = "free_x", nrow = 1))+ 
+#   theme(plot.title = element_text(hjust = 0.5))
+#   #geom_bar(stat="identity", color="black")
+# ggplotly(p3, tooltip = c("x", "y", "fill"))
+# dev.off()
+# 
+# 
+# 
+# pdf("taxa_plot.pdf", width=20, height =10)
+# #jpeg("taxa_plot.jpg", width=20, height =10)
+# plot_bar(ps.top20, x="sample", fill="Family")
+# dev.off()
+# 
+# 
+# 
+# # plot according to location
+# 
+# pdf("taxa_plot_location.pdf", width=20, height =10)
+# #jpeg("taxa_plot_location.jpg", width=20, height =10)
+# plot_bar(ps.top20, x="sample", fill="Family") + facet_wrap(~location, scales="free_x")
+# dev.off()
+# 
+# 
+# # plot according to condition of DNA extraction
+# pdf("taxa_plot_dnafrom.pdf", width=20, height =10)
+# #jpeg("taxa_plot_dnafrom.jpg", width=20, height =10)
+# plot_bar(ps.top20, x="sample", fill="Family") + facet_wrap(~dna_from, scales="free_x")
+# dev.off()
 
 
 ### NOTE ###
@@ -350,11 +457,6 @@ dev.off()
 
 
 
-
-
-
-
-
 #--------------------------------------------------------------------------------------------#
 #--------------------------------------ORDINATION--------------------------------------------#
 #--------------------------------------------------------------------------------------------#
@@ -362,8 +464,8 @@ dev.off()
 OTU_log <- otu_table(otu_log, taxa_are_rows=T)
 ps_log <- phyloseq(OTU_log, SAM)
 
-OTU_percent <- otu_table(otu_percent, taxa_are_rows=T)
-ps_percent <- phyloseq(OTU_percent, SAM)
+# OTU_percent <- otu_table(otu_percent, taxa_are_rows=T)
+# ps_percent <- phyloseq(OTU_percent, SAM)
 
 
 OTU_deseq <- otu_table(otu_deseq, taxa_are_rows=T)
@@ -398,6 +500,10 @@ dev.off()
 
 
 
+
+
+
+
 ### NOTE ###
 # We can see an artefact pattern on log and deseq PCoA
 # It's a possible effect of 0 in otu_table but log doesn't change the result, so...
@@ -421,10 +527,10 @@ heat(melt(abundances(pseqz)), "Var1", "Var2", "value")
 #--------------------------------------------------------------------------------------------#
 
 # phyloseq object creation for each condition
-ps.OI <- subset_samples(ps, dna_from != "Full_body")
-ps.OI <- subset_samples(ps, dna_from != "Salivary_gland")
-ps.OI <- subset_samples(ps, dna_from != "Organs_pull")
-ps.OI <- subset_samples(ps, dna_from != "Blank") # ovaries + intestine
+ps.OI <- subset_samples(ps_deseq, dna_from != "Full_body")
+ps.OI <- subset_samples(ps_deseq, dna_from != "Salivary_gland")
+ps.OI <- subset_samples(ps_deseq, dna_from != "Organs_pull")
+ps.OI <- subset_samples(ps_deseq, dna_from != "Blank") # ovaries + intestine
 
 #otu_deseq[otu_deseq < 0.0] <- 0.0
 
@@ -452,6 +558,8 @@ pdf("NMDS_euc_all.pdf")
 plot_ordination(ps.prop.euc, ord.nmds.euc, color="species", title="Euclidean NMDS (all)", label="sample") +
   geom_point(size = 3)
 dev.off()
+
+ord <- metaMDS(ps_deseq, "euclidean")
 
 pdf("NMDS_euc_fullbody.pdf")
 #jpeg("NMDS_euc_fullbody.jpg")
@@ -488,7 +596,7 @@ dev.off()
 #--------------------------------------------------------------------------------------------#
 
 # otu_table transformation and ordination
-ps.prop <- transform_sample_counts(ps, function(count_tab) count_tab/sum(count_tab))
+ps.prop <- transform_sample_counts(ps_percent, function(count_tab) count_tab/sum(count_tab))
 ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance="bray")
 
 ps.propF <- transform_sample_counts(ps.F, function(count_tab) count_tab/sum(count_tab))
