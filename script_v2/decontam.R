@@ -9,7 +9,6 @@
 #--------------------------------------------------------------------------------------------#
 
 path = "D:/stage/data/runs_new/"
-#path2 = "D:/stage/data/runs_new/decontam_avec_sequence"
 setwd(path)
 
 
@@ -87,13 +86,16 @@ metadata <- as.data.frame(metadata)
 # giving our seq headers more manageable names (ASV_1, ASV_2...)
 asv_seqs <- rownames(otu)
 asv_headers <- vector(dim(otu)[1], mode="character")
+asv_headers2 <- vector(dim(otu)[1], mode="character") 
 
 for (i in 1:dim(otu)[1]) {
   asv_headers[i] <- paste(">ASV", i, sep="_")
+  asv_headers2[i] <- paste("ASV", i, sep="_")
 }
 
 # making and writing out a fasta of our final ASV seqs:
 asv_fasta <- c(rbind(asv_headers, asv_seqs))
+asv_fasta2 <- cbind(asv_headers2, asv_seqs)
 #write(asv_fasta, "ASVs.fa")
 
 # count table:
@@ -109,6 +111,10 @@ row.names(asv_tax) <- sub(">", "", asv_headers)
 # 
 # dim(otu)[1]
 
+
+
+
+
 #--------------------------------------------------------------------------------------------#
 #------------------------------------PHYLOSEQ OBJECT-----------------------------------------#
 #--------------------------------------------------------------------------------------------#
@@ -119,10 +125,12 @@ SAM = sample_data(metadata)
 
 
 ps <- phyloseq(OTU, TAX, SAM)
-ps <- subset_samples(ps,species!="CuT")
-ps <- subset_samples(ps, species!="CuP")
-ps <- subset_samples(ps, species!="CuN")
-ps <- subset_samples(ps, species!="CuG") # cullicoides removed 
+ps <- subset_samples(ps,Species!="CuT")
+ps <- subset_samples(ps, Species!="CuP")
+ps <- subset_samples(ps, Species!="CuN")
+ps <- subset_samples(ps, Species!="CuG") # cullicoides removed 
+
+
 
 
 
@@ -143,32 +151,32 @@ pdf("LibrarySize.pdf")
 ggplot(data=df, aes(x=Index, y=LibrarySize, color=true_or_blank)) + geom_point()
 dev.off()
 
-as.numeric(get_variable(ps, "dna_quant"))
-get_variable(ps, "dna_quant")
+as.numeric(get_variable(ps, "Dna"))
+get_variable(ps, "Dna")
 sample_data(ps)
 
-sample_data(ps)$dna_quant <- as.numeric(get_variable(ps, "dna_quant"))
+sample_data(ps)$Dna <- as.numeric(get_variable(ps, "Dna"))
 
 
 
 
 ######################  IDENTIFY CONTAMINANTS - FREQUENCY ###################################
 
-contamdf.freq <- isContaminant(ps, method="frequency", conc="dna_quant")
+contamdf.freq <- isContaminant(ps, method="frequency", conc="Dna")
 head(contamdf.freq)
 
-table(contamdf.freq$contaminant) # 22 contaminants (27 avant les runs séparés)
+table(contamdf.freq$contaminant) # 22 contaminants (27 before separated runs)
 head(which(contamdf.freq$contaminant))
 
 contam_asvs_freq <- row.names(contamdf.freq[contamdf.freq$contaminant == TRUE, ])
 asv_tax[row.names(asv_tax) %in% contam_asvs_freq, ]
 
 
-plot_frequency(ps, taxa_names(ps)[c(2,32)], conc="dna_quant") + 
+plot_frequency(ps, taxa_names(ps)[c(2,32)], conc="Dna") + 
   xlab("DNA Concentration (PicoGreen fluorescent intensity)")
 
 set.seed(100)
-plot_frequency(ps, taxa_names(ps)[sample(which(contamdf.freq$contaminant),3)], conc="dna_quant") +
+plot_frequency(ps, taxa_names(ps)[sample(which(contamdf.freq$contaminant),3)], conc="Dna") +
   xlab("DNA Concentration (PicoGreen fluorescent intensity)")
 
 
@@ -176,14 +184,14 @@ plot_frequency(ps, taxa_names(ps)[sample(which(contamdf.freq$contaminant),3)], c
 
 ######################  IDENTIFY CONTAMINANTS - PREVALENCE #################################
 
-sample_data(ps)$is.neg <- sample_data(ps)$true_or_blank == "Control sample"
+sample_data(ps)$is.neg <- sample_data(ps)$Control == "Control sample"
 contamdf.prev <- isContaminant(ps, method="prevalence", neg="is.neg")
 
 table(contamdf.prev$contaminant) # 37 contaminants
 head(which(contamdf.prev$contaminant))
 
 contamdf.prev05 <- isContaminant(ps, method="prevalence", neg="is.neg", threshold=0.5)
-table(contamdf.prev05$contaminant) # 69 contaminants (68 avant)
+table(contamdf.prev05$contaminant) # 69 contaminants (68 before)
 
 contam_asvs_prev05 <- row.names(contamdf.prev05[contamdf.prev05$contaminant == TRUE, ])
 contam <-asv_tax[row.names(asv_tax) %in% contam_asvs_prev05, ]
@@ -192,8 +200,8 @@ write.table(contam, "contam_prev.tsv",
 
 
 ps.pa <- transform_sample_counts(ps, function(abund) 1*(abund>0))
-ps.pa.neg <- prune_samples(sample_data(ps.pa)$true_or_blank == "Control sample", ps.pa)
-ps.pa.pos <- prune_samples(sample_data(ps.pa)$true_or_blank == "True sample", ps.pa)
+ps.pa.neg <- prune_samples(sample_data(ps.pa)$Control == "Control sample", ps.pa)
+ps.pa.pos <- prune_samples(sample_data(ps.pa)$Control == "True sample", ps.pa)
 
 
 # Make data.frame of prevalence in positive and negative samples
@@ -211,7 +219,7 @@ dev.off()
 
 ######################  IDENTIFY CONTAMINANTS - COMBINED ###################################
 
-contamdf.combi <- isContaminant(ps, method="combined", conc="dna_quant", neg="is.neg")
+contamdf.combi <- isContaminant(ps, method="combined", conc="Dna", neg="is.neg")
 table(contamdf.combi$contaminant) # 8 contaminants
 
 contam_asvs_combi <- row.names(contamdf.combi[contamdf.combi$contaminant == TRUE, ])
@@ -223,6 +231,7 @@ asv_tax[row.names(asv_tax) %in% contam_asvs_combi, ]
 
 asv_tab <- as(otu_table(ps),"matrix")
 dim(asv_tab)
+
 
 
 
@@ -436,8 +445,8 @@ for (i in 1:ncol(otu_decontam2_bacteria)){
 }
 
 
-ps_decontam_bacteria <- subset_samples(ps_decontam_bacteria, sample != "NP16")
-ps_decontam2_bacteria<- subset_samples(ps_decontam2_bacteria, sample != "NP16")
+ps_decontam_bacteria <- subset_samples(ps_decontam_bacteria, Sample != "NP16")
+ps_decontam2_bacteria<- subset_samples(ps_decontam2_bacteria, Sample != "NP16")
 
 # count_tab_ps_decontam_bacteria <- as(otu_table(ps_decontam_bacteria), "matrix")
 # count_tab_ps_decontam_bacteria <- as.data.frame(count_tab_ps_decontam_bacteria)
@@ -449,6 +458,10 @@ metadata <- sample_data(ps_decontam2_bacteria)
 metadata <- as.data.frame(metadata)
 SAM <- sample_data(metadata)
 
+
+# write the final decontamed otu_table 
+write.table(otu_decontam2_bacteria, "otu_decontam_final.tsv",
+            sep="\t", quote=F, col.names=NA)
 
 
 
@@ -541,7 +554,7 @@ nrow(metadata) # check up
 #count_tab2 <- (otu_decontam2_bacteria+1)
 metadata <- as.matrix(metadata)
 
-deseq_counts <- DESeqDataSetFromMatrix(otu2, colData = metadata, design = ~dna_from)
+deseq_counts <- DESeqDataSetFromMatrix(otu2, colData = metadata, design = ~Dna)
 deseq_counts_vst <- varianceStabilizingTransformation(deseq_counts)
 otu_deseq <- assay(deseq_counts_vst) # normalized otu_table with deseq
 
@@ -556,7 +569,11 @@ ps_deseq <- phyloseq(OTU_deseq, TAX_decontam2, SAM )
 
 save(ps, ps_decontam_bacteria, ps_decontam2_bacteria, ps_percent, ps_deseq, file = "objects.RData")
 
+write.table(otu_percent, "otu_percent.tsv",
+            sep="\t", quote=F, col.names=NA)
 
+write.table(otu_deseq, "otu_deseq.tsv",
+            sep="\t", quote=F, col.names=NA)
 
 
 
@@ -569,3 +586,299 @@ save(ps, ps_decontam_bacteria, ps_decontam2_bacteria, ps_percent, ps_deseq, file
 #install.packages("session", repos = "http://cran.us.r-project.org")
 library(session); packageVersion("session")
 save.session("phyloseq.Rda")
+#load("phyloseq.Rda")
+
+
+
+
+#--------------------------------------------------------------------------------------------#
+#-----------------------------------EXPLORING WOLBACHIA--------------------------------------#
+#--------------------------------------------------------------------------------------------#
+
+ps_percent_wolbachia <- subset_taxa(ps_percent, Genus == "Wolbachia")
+tax_wolbachia <- as(tax_table(ps_percent_wolbachia),"matrix")
+asv_wolbachia <- as(otu_table(ps_percent_wolbachia),"matrix")
+# otu_table()   OTU Table:         [ 214 taxa and 217 samples ]
+# sample_data() Sample Data:       [ 217 samples by 13 sample variables ]
+# tax_table()   Taxonomy Table:    [ 214 taxa by 7 taxonomic ranks ]
+
+
+# OVARY
+
+ps_percent_wolbachia_ovary <- subset_samples(ps_percent_wolbachia, Organ == "Ovary")
+tax_wolbachia_ovary <- as(tax_table(ps_percent_wolbachia_ovary),"matrix")
+asv_wolbachia_ovary <- as(otu_table(ps_percent_wolbachia_ovary),"matrix")
+asv_wolbachia_ovary <- as.data.frame(asv_wolbachia_ovary)
+# otu_table()   OTU Table:         [ 214 taxa and 53 samples ]
+# sample_data() Sample Data:       [ 53 samples by 13 sample variables ]
+# tax_table()   Taxonomy Table:    [ 214 taxa by 7 taxonomic ranks ]
+
+for (i in 1:ncol(asv_wolbachia_ovary)){
+  #print(i)
+  if (sum(asv_wolbachia_ovary[,i])==0){
+    print(names(asv_wolbachia_ovary[i]))
+  }
+} 
+# "NP17"
+
+ps_percent_wolbachia_ovary <- subset_samples(ps_percent_wolbachia_ovary, Sample!="NP17")
+# otu_table()   OTU Table:         [ 214 taxa and 52 samples ]
+# sample_data() Sample Data:       [ 52 samples by 13 sample variables ]
+# tax_table()   Taxonomy Table:    [ 214 taxa by 7 taxonomic ranks ]
+
+asv_ovary_null <- c()
+count = 0
+for (i in 1:nrow(asv_wolbachia_ovary)){
+  if (sum(asv_wolbachia_ovary[i,])==0){
+    print(rownames(asv_wolbachia_ovary)[i])
+    remove = rownames(asv_wolbachia_ovary)[i]
+    asv_ovary_null <- c(asv_ovary_null,remove)
+    count=count+1
+  }
+} 
+
+goodTaxa_ovary <- setdiff(taxa_names(ps_percent_wolbachia_ovary), asv_ovary_null)
+length(goodTaxa_ovary)
+
+ps_percent_wolbachia_ovary <- prune_taxa(goodTaxa_ovary, ps_percent_wolbachia_ovary) 
+# otu_table()   OTU Table:         [ 111 taxa and 52 samples ]
+# sample_data() Sample Data:       [ 52 samples by 13 sample variables ]
+# tax_table()   Taxonomy Table:    [ 111 taxa by 7 taxonomic ranks ]
+
+asv_wolbachia_ovary <- as(otu_table(ps_percent_wolbachia_ovary),"matrix")
+asv_wolbachia_ovary <- as.data.frame(asv_wolbachia_ovary)
+
+asv_wolbachia_ovary_headers <- paste(">",rownames(otu_table(asv_wolbachia_ovary, taxa_are_rows = TRUE)),sep="")
+
+count3 = 0
+for (i in 1:nrow(asv_wolbachia_ovary)){
+  for(j in 1:nrow(asv_fasta2)){
+    if (rownames(asv_wolbachia_ovary)[i]==asv_fasta2[j]){
+      #print(rownames(asv_wolbachia_ovary)[i])
+      count3 = count3 +1
+      rownames(asv_wolbachia_ovary)[i] = asv_fasta2[j,2]
+    }
+  }
+}
+
+asv_wolbachia_ovary_seqs <- rownames(otu_table(asv_wolbachia_ovary, taxa_are_rows = TRUE))
+asv_wolbachia_ovary <- c(rbind(asv_wolbachia_ovary_headers, asv_wolbachia_ovary_seqs))
+write(asv_wolbachia_ovary, "fasta_wolbachia_ovary.fa")
+
+
+
+
+
+
+
+# INTESTINE
+
+ps_percent_wolbachia_intestine <- subset_samples(ps_percent_wolbachia, Organ == "Intestine")
+tax_wolbachia_intestine <- as(tax_table(ps_percent_wolbachia_intestine),"matrix")
+asv_wolbachia_intestine <- as(otu_table(ps_percent_wolbachia_intestine),"matrix")
+asv_wolbachia_intestine <- as.data.frame(asv_wolbachia_intestine)
+# otu_table()   OTU Table:         [ 214 taxa and 51 samples ]
+# sample_data() Sample Data:       [ 51 samples by 13 sample variables ]
+# tax_table()   Taxonomy Table:    [ 214 taxa by 7 taxonomic ranks ]
+
+
+for (i in 1:ncol(asv_wolbachia_intestine)){
+  #print(i)
+  if (sum(asv_wolbachia_intestine[,i])==0){
+    print(names(asv_wolbachia_intestine[i]))
+  }
+}
+# "NP19"
+# "S67"
+# "S71"
+# "S75"
+
+ps_percent_wolbachia_intestine <- subset_samples(ps_percent_wolbachia_intestine, 
+                                                 Sample != "NP19" & Sample!="S67" &
+                                                   Sample!="S71" & Sample!="S75")
+
+# otu_table()   OTU Table:         [ 214 taxa and 47 samples ]
+# sample_data() Sample Data:       [ 47 samples by 13 sample variables ]
+# tax_table()   Taxonomy Table:    [ 214 taxa by 7 taxonomic ranks ]
+
+asv_intestine_null <- c()
+count = 0
+for (i in 1:nrow(asv_wolbachia_intestine)){
+  if (sum(asv_wolbachia_intestine[i,])==0){
+    print(rownames(asv_wolbachia_intestine)[i])
+    remove = rownames(asv_wolbachia_intestine)[i]
+    asv_intestine_null <- c(asv_intestine_null,remove)
+    count=count+1
+  }
+} 
+
+goodTaxa_intestine <- setdiff(taxa_names(ps_percent_wolbachia_intestine), asv_intestine_null)
+length(goodTaxa_intestine)
+
+ps_percent_wolbachia_intestine <- prune_taxa(goodTaxa_intestine, ps_percent_wolbachia_intestine)
+# otu_table()   OTU Table:         [ 53 taxa and 47 samples ]
+# sample_data() Sample Data:       [ 47 samples by 13 sample variables ]
+# tax_table()   Taxonomy Table:    [ 53 taxa by 7 taxonomic ranks ]
+
+
+asv_wolbachia_intestine <- as(otu_table(ps_percent_wolbachia_intestine),"matrix")
+asv_wolbachia_intestine <- as.data.frame(asv_wolbachia_intestine)
+
+asv_wolbachia_intestine_headers <- paste(">",rownames(otu_table(asv_wolbachia_intestine, taxa_are_rows = TRUE)), sep="")
+
+count3 = 0
+for (i in 1:nrow(asv_wolbachia_intestine)){
+  for(j in 1:nrow(asv_fasta2)){
+    if (rownames(asv_wolbachia_intestine)[i]==asv_fasta2[j]){
+      print(rownames(asv_wolbachia_intestine)[i])
+      count3 = count3 +1
+      rownames(asv_wolbachia_intestine)[i] = asv_fasta2[j,2]
+    }
+  }
+}
+
+asv_wolbachia_intestine_seqs <- rownames(otu_table(asv_wolbachia_intestine, taxa_are_rows = TRUE))
+asv_wolbachia_intestine <- c(rbind(asv_wolbachia_intestine_headers, asv_wolbachia_intestine_seqs))
+write(asv_wolbachia_intestine, "fasta_wolbachia_intestine.fa")
+
+
+
+
+
+# COMPARISON OVARY / INTESTINE
+
+asv_wolbachia_intestine <- as.data.frame.factor(asv_wolbachia_intestine)
+asv_wolbachia_ovary <- as.data.frame.factor(asv_wolbachia_ovary)
+
+
+for (i in 1:nrow(asv_wolbachia_intestine)){
+  row.names(asv_wolbachia_intestine)[i] <- asv_wolbachia_intestine[i,]
+}
+
+for (i in 1:nrow(asv_wolbachia_ovary)){
+  row.names(asv_wolbachia_ovary)[i] <- asv_wolbachia_ovary[i,]
+}
+
+
+
+common_asv <- c()
+different_asv <- c()
+for (i in 1:nrow(asv_wolbachia_ovary)){
+  for (j in 1:nrow(asv_wolbachia_intestine)){
+    if (asv_wolbachia_ovary[i,]==asv_wolbachia_intestine[j,]){
+      #print("yes")
+      print(i)
+      print(asv_wolbachia_ovary[i,1])
+      new_element = asv_wolbachia_ovary[i,1]
+      common_asv <- c(common_asv, new_element) # 20 commun ASV on 111 ASV
+    }
+  }
+}
+write(common_asv, "fasta_commun_wolbachia.fa")
+
+common_asv <- as.data.frame.factor(common_asv)
+rownames(common_asv)
+
+for (i in 1:nrow(common_asv)){
+  row.names(common_asv)[i] <- common_asv[i,]
+}
+
+rownames(common_asv)
+common_asv <- sort(common_asv[,1])
+common_asv <- as.data.frame.factor(common_asv)
+common_asv <- common_asv[1:20,]
+common_asv <- as.data.frame.factor(common_asv)
+
+for(i in 1:nrow(common_asv)){
+  common_asv$commun_asv[i] <- substr(common_asv[i,], 2, nchar(common_asv[i,]))
+}
+common_asv <- common_asv[,2]
+
+
+
+
+# WHICH SAMPLES THESE ASV CONCERN ? 
+
+# Ovary
+goodTaxa_common <- setdiff(taxa_names(ps_percent_wolbachia_ovary), common_asv)
+length(goodTaxa_common)
+
+ps_percent_wolbachia_common <- prune_taxa(goodTaxa_common, ps_percent_wolbachia_ovary)
+# otu_table()   OTU Table:         [ 91 taxa and 52 samples ]
+# sample_data() Sample Data:       [ 52 samples by 13 sample variables ]
+# tax_table()   Taxonomy Table:    [ 91 taxa by 7 taxonomic ranks ]
+
+asv_wolbachia_common_ovary <- as(otu_table(ps_percent_wolbachia_common),"matrix")
+asv_wolbachia_common_ovary <- as.data.frame(asv_wolbachia_common_ovary)
+metadata_wolbachia_common_ovary <- sample_data(ps_percent_wolbachia_common)
+tax_wolbachia_common_ovary <- tax_table(ps_percent_wolbachia_common)
+
+asv_ovary_wolbachia_null <- c()
+count = 0
+for (i in 1:ncol(asv_wolbachia_common_ovary)){
+  if (sum(asv_wolbachia_common_ovary[,i])==0){
+    print(names(asv_wolbachia_common_ovary)[i])
+    
+    asv_wolbachia_common_ovary <- asv_wolbachia_common_ovary[,-i]
+    print("otu column removed")
+    metadata_wolbachia_common_ovary <- metadata_wolbachia_common_ovary[-i,]
+    print("metadata column removed")
+  }
+} 
+
+OTU_wolbachia_ovary <- otu_table(asv_wolbachia_common_ovary, taxa_are_rows = TRUE)
+TAX_wolbachia_ovary <- tax_table(tax_wolbachia_common_ovary)
+SAM_wolbachia_ovary <- sample_data(metadata_wolbachia_common_ovary)
+
+ps_percent_wolbachia_common <- phyloseq(OTU_wolbachia_ovary, TAX_wolbachia_ovary, SAM_wolbachia_ovary)
+# otu_table()   OTU Table:         [ 91 taxa and 35 samples ]
+# sample_data() Sample Data:       [ 35 samples by 13 sample variables ]
+# tax_table()   Taxonomy Table:    [ 91 taxa by 7 taxonomic ranks ]
+
+metadata_wolbachia_common_ovary <- as(metadata_wolbachia_common_ovary, "matrix")
+write.table(metadata_wolbachia_common_ovary, "common_wolbachia_ovary.tsv",sep="\t", quote=F, col.names=NA)
+
+
+
+
+# Intestine 
+goodTaxa_common <- setdiff(taxa_names(ps_percent_wolbachia_intestine), common_asv)
+length(goodTaxa_common)
+
+ps_percent_wolbachia_common <- prune_taxa(goodTaxa_common, ps_percent_wolbachia_intestine)
+# otu_table()   OTU Table:         [ 33 taxa and 47 samples ]
+# sample_data() Sample Data:       [ 47 samples by 13 sample variables ]
+# tax_table()   Taxonomy Table:    [ 33 taxa by 7 taxonomic ranks ]
+
+asv_wolbachia_common_intestine <- as(otu_table(ps_percent_wolbachia_common),"matrix")
+asv_wolbachia_common_intestine <- as.data.frame(asv_wolbachia_common_intestine)
+metadata_wolbachia_common_intestine <- sample_data(ps_percent_wolbachia_common)
+tax_wolbachia_common_intestine <- tax_table(ps_percent_wolbachia_common)
+
+asv_intestine_wolbachia_null <- c()
+count = 0
+for (i in 1:ncol(asv_wolbachia_common_intestine)){
+  if (sum(asv_wolbachia_common_intestine[,i])==0){
+    print(names(asv_wolbachia_common_intestine)[i])
+    
+    asv_wolbachia_common_intestine <- asv_wolbachia_common_intestine[,-i]
+    print("otu column removed")
+    metadata_wolbachia_common_intestine <- metadata_wolbachia_common_intestine[-i,]
+    print("metadata column removed")
+  }
+} 
+
+OTU_wolbachia_intestine <- otu_table(asv_wolbachia_common_intestine, taxa_are_rows = TRUE)
+TAX_wolbachia_intestine <- tax_table(tax_wolbachia_common_intestine)
+SAM_wolbachia_intestine <- sample_data(metadata_wolbachia_common_intestine)
+
+ps_percent_wolbachia_common <- phyloseq(OTU_wolbachia_intestine, TAX_wolbachia_intestine, SAM_wolbachia_intestine)
+# otu_table()   OTU Table:         [ 33 taxa and 26 samples ]
+# sample_data() Sample Data:       [ 26 samples by 13 sample variables ]
+# tax_table()   Taxonomy Table:    [ 33 taxa by 7 taxonomic ranks ]
+
+metadata_wolbachia_common_intestine <- as(metadata_wolbachia_common_intestine, "matrix")
+write.table(metadata_wolbachia_common_intestine, "common_wolbachia_intestine.tsv",sep="\t", quote=F, col.names=NA)
+
+save(ps, ps_decontam_bacteria, ps_decontam2_bacteria, ps_percent, ps_deseq, file = "objects.RData")
+
