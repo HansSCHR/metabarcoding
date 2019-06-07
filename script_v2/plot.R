@@ -211,9 +211,9 @@ setwd(path2)
 # dev.off()
 
 
-p3 <- ggrare(ps_decontam2_bacteria,
+p3 <- ggrare(ps_decontam2_noblank,
              step = 500,
-             color = "Control",
+             #color = "red",
              plot = T,
              parallel = F,
              se = T)
@@ -230,7 +230,7 @@ p4 <- p3 +
   facet_wrap(~ Organ) + 
   geom_vline(xintercept = min(sample_sums(ps)), 
              color = "gray60") +
-  ggtitle("After removing mito, chloro, archeae") +
+  ggtitle("Rarefaction curve") +
   xlim(0,100000) +
   ylim(0, 230)
   
@@ -289,6 +289,8 @@ ps_noblank <- subset_samples(ps, Control!="Control sample")
 ps_decontam_noblank <- subset_samples(ps_decontam2_bacteria, Control!="Control sample")
 ps_decontam2_noblank <- subset_samples(ps_decontam2_bacteria, Control!="Control sample")
 
+
+
 data1 <-  filter_taxa(ps_noblank, 
                      function(x) sum(x >= 10) > (1), 
                      prune =  TRUE) 
@@ -298,6 +300,10 @@ data2 <-  filter_taxa(ps_decontam_noblank,
                       prune =  TRUE) 
 
 data3 <-  filter_taxa(ps_decontam2_noblank, 
+                      function(x) sum(x >= 10) > (1), 
+                      prune =  TRUE) 
+
+data4 <-  filter_taxa(ps_percent_wolbachia, 
                       function(x) sum(x >= 10) > (1), 
                       prune =  TRUE) 
 
@@ -434,11 +440,92 @@ dev.off()
 
 
 
+
+p1 <- plot_richness(data4, 
+                    x="Sample", 
+                    color="Species", 
+                    measures=c("Observed","Shannon","ACE", "Chao1"), 
+                    nrow = 1) +
+  ggtitle("After removing mito, chloro, archeae")
+# pdf("richness_ps_decontam2_species.pdf")
+# print(p1)
+# dev.off()
+
+p2 <- plot_richness(data3, 
+                    x="Sample", 
+                    color="Organ", 
+                    measures=c("Observed","Shannon","ACE", "Chao1"), 
+                    nrow = 1) +
+  ggtitle("After removing mito, chloro, archeae")
+# pdf("richness_ps_decontam2_dnafrom.pdf")
+# print(p2)
+# dev.off()
+
+
+pdf("richness_ps_decontam2_species2.pdf")
+ggplot(p1$data,aes(Species,value,colour=Species,shape=Species)) +
+  facet_grid(variable ~ Species, drop=T,scale="free",space="fixed") +
+  geom_boxplot(outlier.colour = NA,alpha=0.8, 
+               position = position_dodge(width=0.9)) + 
+  geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
+  ylab("Diversity index")  + xlab(NULL) + theme_bw() +
+  ggtitle("After removing mito, chloro, archeae (species)")
+dev.off()
+
+pdf("richness_ps_decontam2_dnafrom2.pdf")
+ggplot(p1$data,aes(Organ,value,colour=Organ,shape=Species)) +
+  facet_grid(variable ~ Organ, drop=T,scale="free",space="fixed") +
+  geom_boxplot(outlier.colour = NA,alpha=0.8, 
+               position = position_dodge(width=0.9)) + 
+  geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
+  ylab("Diversity index")  + xlab(NULL) + theme_bw() +
+  ggtitle("After removing mito, chloro, archeae (organ)")
+dev.off()
+
+
+
+
 #--------------------------------------------------------------------------------------------#
 #----------------------------------TAXONOMIC SUMMARIES---------------------------------------#
 #--------------------------------------------------------------------------------------------#
 ps_deseq <- subset_samples(ps_deseq, Control!="Control sample")
 ps_percent <- subset_samples(ps_percent, Control!="Control sample")
+ps_percent <- subset_taxa(ps_percent, Order == "Rickettsiales")
+
+ps_percent_wolbachia <- subset_samples(ps_percent_wolbachia, Control!="Control sample")
+ps_percent_wolbachia <- prune_samples(sample_sums(ps_percent_wolbachia) >= 1, ps_percent_wolbachia)
+
+
+p <- plot_composition(ps_percent_wolbachia,
+                      taxaRank1 = "Kingdom",
+                      taxaSet1 ="Bacteria",
+                      taxaRank2 = "Phylum", 
+                      numberOfTaxa = 20, 
+                      fill= "Phylum") +
+  facet_wrap(~ Species, scales = "free_x", nrow = 1) + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  ggtitle("Percent normalization (species)")
+
+pdf("composition_ps_percent_species.pdf")
+plot(p)
+dev.off()
+
+p <- plot_composition(ps_percent_wolbachia,
+                      taxaRank1 = "Kingdom",
+                      taxaSet1 ="Bacteria",
+                      taxaRank2 = "Phylum", 
+                      numberOfTaxa = 20, 
+                      fill= "Phylum") +
+  facet_wrap(~ Organ, scales = "free_x", nrow = 1) + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  ggtitle("Percent normalization (organ)")
+
+pdf("composition_ps_percent_organ.pdf")
+plot(p)
+dev.off()
+
+
+
 
 p <- plot_composition(ps_deseq,
                       taxaRank1 = "Kingdom",
@@ -488,9 +575,9 @@ dev.off()
 p <- plot_composition(ps_percent,
                       taxaRank1 = "Kingdom",
                       taxaSet1 ="Bacteria",
-                      taxaRank2 = "Phylum", 
+                      taxaRank2 = "Class", 
                       numberOfTaxa = 20, 
-                      fill= "Phylum") +
+                      fill= "Genus") +
   facet_wrap(~ Organ, scales = "free_x", nrow = 1) + 
   theme(plot.title = element_text(hjust = 0.5)) +
   ggtitle("Percent normalization (organ)")
@@ -799,7 +886,7 @@ ord.nmds.brayO2 <- ordinate(ps.propO2, method="NMDS", distance="bray")
 
 pdf("NMDS_bray_fullbody.pdf")
 #jpeg("NMDS_bray_fullbody.jpg")
-plot_ordination(ps.propF, ord.nmds.brayF, color="Species", shape="Organ", title="Bray NMDS with full body (%)", label="Sample") +
+plot_ordination(ps.propF, ord.nmds.brayF, color="Species", title="Bray NMDS with full body (%)", label="Sample") +
   geom_point(size = 3)
 dev.off()
 

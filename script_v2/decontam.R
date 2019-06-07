@@ -148,7 +148,7 @@ df <- df[order(df$LibrarySize),]
 df$Index <- seq(nrow(df))
 
 pdf("LibrarySize.pdf")
-ggplot(data=df, aes(x=Index, y=LibrarySize, color=true_or_blank)) + geom_point()
+ggplot(data=df, aes(x=Index, y=LibrarySize, color=Dna)) + geom_point()
 dev.off()
 
 as.numeric(get_variable(ps, "Dna"))
@@ -596,6 +596,36 @@ save.session("phyloseq.Rda")
 #--------------------------------------------------------------------------------------------#
 
 ps_percent_wolbachia <- subset_taxa(ps_percent, Genus == "Wolbachia")
+ps_percent_wolbachia <- prune_samples(sample_sums(ps_percent_wolbachia) >= 1, ps_percent_wolbachia)
+ps_percent_wolbachia 
+# otu_table()   OTU Table:         [ 214 taxa and 170 samples ]
+# sample_data() Sample Data:       [ 170 samples by 14 sample variables ]
+# tax_table()   Taxonomy Table:    [ 214 taxa by 7 taxonomic ranks ]
+
+asv_wolbachia <- as(otu_table(ps_percent_wolbachia),"matrix")
+
+
+
+
+ps_percent_wolbachia_ovary <- subset_samples(ps_percent_wolbachia, Organ == "Ovary")
+ps_percent_wolbachia_ovary <- prune_samples(sample_sums(ps_percent_wolbachia_ovary) >= 1, ps_percent_wolbachia_ovary)
+ps_percent_wolbachia_ovary
+# otu_table()   OTU Table:         [ 214 taxa and 51 samples ]
+# sample_data() Sample Data:       [ 51 samples by 14 sample variables ]
+# tax_table()   Taxonomy Table:    [ 214 taxa by 7 taxonomic ranks ]
+
+ps_percent_wolbachia_intestine <- subset_samples(ps_percent_wolbachia, Organ == "Intestine")
+ps_percent_wolbachia_intestine <- prune_samples(sample_sums(ps_percent_wolbachia_intestine) >= 1, ps_percent_wolbachia_intestine)
+ps_percent_wolbachia_intestine
+# otu_table()   OTU Table:         [ 214 taxa and 39 samples ]
+# sample_data() Sample Data:       [ 39 samples by 14 sample variables ]
+# tax_table()   Taxonomy Table:    [ 214 taxa by 7 taxonomic ranks ]
+
+
+save(ps, ps_decontam_bacteria, ps_decontam2_bacteria, ps_percent, ps_deseq, ps_percent_wolbachia, file = "objects.RData")
+
+
+ps_percent_wolbachia <- prune_samples(ps_percent_wolbachia)
 tax_wolbachia <- as(tax_table(ps_percent_wolbachia),"matrix")
 asv_wolbachia <- as(otu_table(ps_percent_wolbachia),"matrix")
 # otu_table()   OTU Table:         [ 214 taxa and 217 samples ]
