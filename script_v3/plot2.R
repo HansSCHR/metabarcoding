@@ -197,7 +197,7 @@ dev.off()
 p <- plot_composition(ps_percent,
                       taxaRank1 = "Kingdom",
                       taxaSet1 ="Bacteria",
-                      taxaRank2 = "Class", 
+                      taxaRank2 = "Phylum", 
                       numberOfTaxa = 20, 
                       fill= "Phylum") +
   facet_wrap(~ Organ, scales = "free_x", nrow = 3) + 
@@ -292,9 +292,10 @@ p <- plot_composition(ps_proteo,
                       taxaRank2 = "Genus", 
                       numberOfTaxa = 20, 
                       fill= "Genus") +
-  facet_wrap(~ Organ, scales = "free_x", nrow = 5) + 
-  theme(plot.title = element_text(hjust = 0.5)) +
-  ggtitle("Taxonomic composition - Alphaproteobacteria") +
+  facet_wrap(~ Organ, scales = "free_x", ncol=5) + 
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.text = element_text(size = 0.5)) +
+  guides(shape = guide_legend(override.aes = list(size = 0.5)))
   theme_gray()
 
 pdf("composition_alphaproteobacteria_organ.pdf")
@@ -364,7 +365,8 @@ full_no_aedes <- subset_samples(full, Species!="Aedes aegypti")
 full_no_labo <- subset_samples(full_no_aedes, Location!="Labo Tetracycline" | Location!="Lavar")
 
 intestine <- subset_samples(ps_percent, Organ == "Intestine")
-intestine_camping_date <- subset_samples(ps_percent, Location == "Camping Europe" & Organ =="Intestine" & Date =="30/05/2017" | Date =="28/06/2017")
+intestine_camping <- subset_samples(ps_percent, Location == "Camping Europe" & Organ =="Intestine")
+intestine_camping_date <- subset_samples(intestine_camping, Date =="30/05/2017" | Date =="28/06/2017")
 intestine_no_lavar <- subset_samples(intestine, Location != "Lavar")
 intestine_filter <- subset_samples(intestine_camping_date, Sample !="NP17" & Sample !="NP20" & Sample !="S81" & Sample != "S82")
 
@@ -465,9 +467,9 @@ pdf("NMDS_bray_intestine.pdf")
 plot_ordination(prop.intestine, bray.intestine, color="Date", shape="Location", title="Bray NMDS with intestine - Date", label="Sample") +
   geom_point(size = 4) +
   theme_gray()
-dev.off
+dev.off()
 
-pdf("NMDS_bray_intestine.pdf")
+pdf("NMDS_bray_intestine_no_lavar.pdf")
 #jpeg("NMDS_bray_intestine.jpg")
 plot_ordination(prop.intestine_no_lavar, bray.intestine_no_lavar, color="Date", shape="Location", title="Bray NMDS with intestine - Date without Lavar", label="Sample") +
   geom_point(size = 4) +
