@@ -31,6 +31,7 @@ library("reshape")
 library("DESeq2")
 library("plotly")
 library("hrbrthemes")
+library("grid")
 
 scripts <- c("graphical_methods.R",
              "tree_methods.R",
@@ -112,14 +113,24 @@ p1 <- ggrare(ps_decontam2,
              parallel = F,
              se = T)
 
+# p2 <- p1 + 
+#   facet_wrap(~ Organ) + 
+#   geom_vline(xintercept = min(sample_sums(ps)), 
+#              color = "gray60") +
+#   ggtitle("Rarefaction curve") +
+#   xlim(0,100000) +
+#   ylim(0, 230) +
+#   theme_gray()
+
 p2 <- p1 + 
   facet_wrap(~ Organ) + 
   geom_vline(xintercept = min(sample_sums(ps)), 
              color = "gray60") +
-  ggtitle("Rarefaction curve") +
   xlim(0,100000) +
   ylim(0, 230) +
-  theme_gray()
+  labs(title = "Suffisant observations have been made for sampling",
+       caption = "Rarefaction curve",
+       x = "Sample Size", y = "Species Richness")
 
 pdf("rarecurve_decontam2.pdf")
 plot(p2)
@@ -137,7 +148,7 @@ data1 <-  filter_taxa(ps_decontam2,
 p1 <- plot_richness(data1, 
                     x="Sample", 
                     color="Species", 
-                    measures=c("Observed","Shannon","ACE", "Chao1"), 
+                    measures=c("Observed","Shannon", "Chao1"), 
                     nrow = 1) +
   ggtitle("Alpha diversity")
 # pdf("richness_ps_decontam2_species.pdf")
@@ -147,7 +158,7 @@ p1 <- plot_richness(data1,
 p2 <- plot_richness(data1, 
                     x="Sample", 
                     color="Organ", 
-                    measures=c("Observed","Shannon","ACE", "Chao1"), 
+                    measures=c("Observed","Shannon", "Chao1"), 
                     nrow = 1) +
   ggtitle("Alpha diversity")
 
@@ -158,8 +169,8 @@ ggplot(p1$data,aes(Species,value,colour=Species,shape=Species)) +
   geom_boxplot(outlier.colour = NA,alpha=0.8, 
                position = position_dodge(width=0.9)) + 
   geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
-  ylab("Diversity index")  + xlab(NULL) + theme_gray() +
-  ggtitle("Alpha diversity")
+  labs(title = "A greater diversity in Guadeloupe",
+       caption = "Alpha diversity", y = "Diversity index")
 dev.off()
 
 pdf("richness_decontam2_organ.pdf")
@@ -168,8 +179,8 @@ ggplot(p1$data,aes(Organ,value,colour=Organ,shape=Species)) +
   geom_boxplot(outlier.colour = NA,alpha=0.8, 
                position = position_dodge(width=0.9)) + 
   geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
-  ylab("Diversity index")  + xlab(NULL) + theme_gray() +
-  ggtitle("Alpha diversity ")
+  labs(title = "A greater diversity in whole organisms and pooled",
+       caption = "Alpha diversity", y = "Diversity index")
 dev.off()
 
 
@@ -186,8 +197,8 @@ p <- plot_composition(ps_percent,
                       numberOfTaxa = 20, 
                       fill= "Phylum") +
   facet_wrap(~ Species, scales = "free_x", nrow = 3) + 
-  theme(plot.title = element_text(hjust = 0.5)) +
-  ggtitle("Taxonomic composition - all Bacteria") +
+  labs(title = "Proteobacteria is the dominant phylum in species",
+       caption = "Taxonomic composition (20 most abundant phylum)", x="Abundance", y = "Sample") +
   theme_gray()
 
 pdf("composition_percent_species.pdf")
@@ -201,8 +212,9 @@ p <- plot_composition(ps_percent,
                       numberOfTaxa = 20, 
                       fill= "Phylum") +
   facet_wrap(~ Organ, scales = "free_x", nrow = 3) + 
-  theme(plot.title = element_text(hjust = 0.5)) +
-  ggtitle("Taxonomic composition - all Bacteria") +
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  labs(title = "Proteobacteria is the dominant phylum in organs",
+       caption = "Taxonomic composition (20 most abundant phylum)", x="Abundance", y = "Sample") +
   theme_gray()
 
 pdf("composition_percent_organ.pdf")
@@ -218,8 +230,9 @@ p <- plot_composition(ps_proteo,
                       numberOfTaxa = 20, 
                       fill= "Class") +
   facet_wrap(~ Species, scales = "free_x", nrow = 3) + 
-  theme(plot.title = element_text(hjust = 0.5)) +
-  ggtitle("Taxonomic composition - Proteobacteria") +
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  labs(title = "Alphaproteobacteria is the dominant class in species",
+       caption = "Taxonomic composition (class)", x="Abundance", y = "Sample")+
   theme_gray()
 
 pdf("composition_proteobacteria_species.pdf")
@@ -230,11 +243,12 @@ p <- plot_composition(ps_proteo,
                       taxaRank1 = "Kingdom",
                       taxaSet1 ="Bacteria",
                       taxaRank2 = "Phylum", 
-                      numberOfTaxa = 20, 
+                      numberOfTaxa = 15, 
                       fill= "Class") +
   facet_wrap(~ Organ, scales = "free_x", nrow = 3) + 
-  theme(plot.title = element_text(hjust = 0.5)) +
-  ggtitle("Taxonomic composition - Proteobacteria") +
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  labs(title = "Alphaproteobacteria is the dominant class in organs",
+       caption = "Taxonomic composition (class)", x="Abundance", y = "Sample")+
   theme_gray()
 
 pdf("composition_proteobacteria_organ.pdf")
@@ -245,11 +259,12 @@ p <- plot_composition(ps_proteo,
                       taxaRank1 = "Class",
                       taxaSet1 ="Gammaproteobacteria",
                       taxaRank2 = "Genus", 
-                      numberOfTaxa = 20, 
+                      numberOfTaxa = 15, 
                       fill= "Genus") +
   facet_wrap(~ Species, scales = "free_x", nrow = 5) + 
-  theme(plot.title = element_text(hjust = 0.5)) +
-  ggtitle("Taxonomic composition - Gammaproteobacteria") +
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  labs(title = "Klebsiella and Erwinia are specific of Culex species in Gammaproteobacteria",
+       caption = "Taxonomic composition (15 most abundant class)", x="Abundance", y = "Sample")+
   theme_gray()
 
 pdf("composition_gammaproteobacteria_species.pdf")
@@ -260,11 +275,12 @@ p <- plot_composition(ps_proteo,
                       taxaRank1 = "Class",
                       taxaSet1 ="Gammaproteobacteria",
                       taxaRank2 = "Genus", 
-                      numberOfTaxa = 20, 
+                      numberOfTaxa = 15, 
                       fill= "Genus") +
   facet_wrap(~ Organ, scales = "free_x", nrow = 5) + 
-  theme(plot.title = element_text(hjust = 0.5)) +
-  ggtitle("Taxonomic composition - Gammaproteobacteria") +
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  labs(title = "Klebsiella and Erwinia are specific of intestine and whole organisms",
+       caption = "Taxonomic composition (15 most abundant class)", x="Abundance", y = "Sample") +
   theme_gray()
 
 pdf("composition_gammaproteobacteria_organ.pdf")
@@ -275,27 +291,45 @@ p <- plot_composition(ps_proteo,
                       taxaRank1 = "Class",
                       taxaSet1 ="Alphaproteobacteria",
                       taxaRank2 = "Genus", 
-                      numberOfTaxa = 20, 
+                      numberOfTaxa = 15, 
                       fill= "Genus") +
   facet_wrap(~ Species, scales = "free_x", nrow = 5) + 
-  theme(plot.title = element_text(hjust = 0.5)) +
-  ggtitle("Taxonomic composition - Alphaproteobacteria") +
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  labs(title = "Wolbachia is the dominant class within Alphaproteobacteria in species",
+       caption = "Taxonomic composition (15 most abundant class)", x="Abundance", y = "Sample") +
   theme_gray()
 
 pdf("composition_alphaproteobacteria_species.pdf")
 plot(p)
 dev.off()
 
+# test2 <- test[1,6] =="Allorhizobium-Neorhizobium-Pararhizobium-Rhizobium"
+# test[1,6]
+# 
+# test2 <- c()
+# for (i in 1:nrow(test)){
+#   #print(test[i,6])
+#   new <- (test[i,]=="Allorhizobium-Neorhizobium-Pararhizobium-Rhizobium")
+#   test2 <- c(test2,new)
+# }
+# 
+# test2 <- data.frame(test2)
+# test2[1,]==TRUE
+# for (i in 1:nrow(test2)){
+#   print(test2[i,]==TRUE)
+# }
+# test[1,6]
+
+
 p <- plot_composition(ps_proteo,
                       taxaRank1 = "Class",
                       taxaSet1 ="Alphaproteobacteria",
                       taxaRank2 = "Genus", 
-                      numberOfTaxa = 20, 
+                      numberOfTaxa = 15, 
                       fill= "Genus") +
   facet_wrap(~ Organ, scales = "free_x", ncol=5) + 
-  theme(plot.title = element_text(hjust = 0.5),
-        legend.text = element_text(size = 0.5)) +
-  guides(shape = guide_legend(override.aes = list(size = 0.5)))
+  labs(title = "Wolbachia is the dominant class within Alphaproteobacteria in organism",
+       caption = "Taxonomic composition (15 most abundant class)", x="Abundance", y = "Sample") +
   theme_gray()
 
 pdf("composition_alphaproteobacteria_organ.pdf")
@@ -306,11 +340,12 @@ p <- plot_composition(ps_proteo,
                       taxaRank1 = "Class",
                       taxaSet1 ="Deltaproteobacteria",
                       taxaRank2 = "Genus", 
-                      numberOfTaxa = 20, 
+                      numberOfTaxa = 15, 
                       fill= "Genus") +
   facet_wrap(~ Species, scales = "free_x", nrow = 5) + 
-  theme(plot.title = element_text(hjust = 0.5)) +
-  ggtitle("Taxonomic composition - Deltaproteobacteria") +
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  labs(title = "Taxonomic composition - Deltaproteobacteria",
+       caption = "Taxonomic composition (8 most abundant class)", x="Abundance", y = "Sample")+
   theme_gray()
 
 pdf("composition_deltaproteobacteria_species.pdf")
@@ -339,15 +374,23 @@ test <- as(tax_table(ps_proteo),"matrix")
 #--------------------------------------------------------------------------------------------#
 pdf("PCoA_percent_field1.pdf")
 plot_ordination(ps_percent, ordinate(ps_percent, method ="MDS", distance = "bray"), color = "Species", shape="Field") +
-  geom_point(size = 4) +
-  ggtitle("Bray PCoA - Labo vs Field") +
+  geom_point(size = 4) + 
+   labs(title = "Species have specific bacterial community structure",
+        caption = "Bray PCoA", x="Axis.1 [37.5%]", y = "Axis.2 [10.2%]") +
   theme_gray()
 dev.off()
+
+# with tree
+# plot_ordination(ps_percent, ordinate(ps_percent, method ="MDS", distance = "unifrac"), color = "Species", shape="Field") +
+#   geom_point(size = 4) +
+#   ggtitle("Bray PCoA - Labo vs Field") +
+#   theme_gray()
 
 pdf("PCoA_percent_field2.pdf")
 plot_ordination(ps_percent, ordinate(ps_percent, method ="MDS", distance = "bray"), color = "Field", shape="Species") +
   geom_point(size = 4) +
-  ggtitle("Bray PCoA - Labo vs Field") +
+  labs(title = "Distinction between laboratory and field samples",
+       caption = "Bray PCoA", x="Axis.1 [37.5%]", y = "Axis.2 [10.2%]") +
   theme_gray()
 dev.off()
 
@@ -362,7 +405,7 @@ ps_percent <- subset_samples(ps_percent, Sample != "S175")
 
 full <- subset_samples(ps_percent, Organ == "Full" | Organ == "Pool")
 full_no_aedes <- subset_samples(full, Species!="Aedes aegypti")
-full_no_labo <- subset_samples(full_no_aedes, Location!="Labo Tetracycline" | Location!="Lavar")
+full_no_labo <- subset_samples(full_no_aedes, Location!="Labo Tetracycline" & Location!="Lavar")
 
 intestine <- subset_samples(ps_percent, Organ == "Intestine")
 intestine_camping <- subset_samples(ps_percent, Location == "Camping Europe" & Organ =="Intestine")
@@ -391,6 +434,8 @@ bray.full_no_labo <- ordinate(full_no_labo, method="NMDS", distance="bray")
 pdf("NMDS_bray_full(without full vs pool).pdf")
 #jpeg("NMDS_bray_fullbody.jpg")
 plot_ordination(prop.full, bray.full, color="Species", title="Bray NMDS with full body", label="Sample") +
+  labs(title = "Species have a specific bacterial community structure",
+       caption = "Bray NMDS", x="NMDS1", y = "NMDS2")+
   geom_point(size = 4) +
   theme_gray()
 dev.off()
@@ -398,6 +443,8 @@ dev.off()
 pdf("NMDS_bray_full(with full vs pool).pdf")
 #jpeg("NMDS_bray_fullbody.jpg")
 plot_ordination(prop.full, bray.full, color="Species", shape="Organ", title="Bray NMDS with full body - Full vs Pool", label="Sample") +
+  labs(title = "Whole and pooled organisms don't show any difference",
+       caption = "Bray NMDS", x="NMDS1", y = "NMDS2") +
   geom_point(size = 4) +
   theme_gray()
 dev.off()
@@ -412,6 +459,8 @@ dev.off()
 pdf("NMDS_bray_full(without aedes).pdf")
 #jpeg("NMDS_bray_fullbody.jpg")
 plot_ordination(prop.full_no_aedes, bray.full_no_aedes, color="Species", shape="Location", title="Bray NMDS with full body - Location without Aedes aegypti", label="Sample") +
+  labs(title = "Culex share similarities",
+       caption = "Bray NMDS", x="NMDS1", y = "NMDS2") +
   geom_point(size = 4) +
   theme_gray()
 dev.off()
@@ -434,6 +483,8 @@ dev.off()
 pdf("NMDS_bray_full(france vs gwada without aedes and labo).pdf")
 #jpeg("NMDS_bray_fullbody.jpg")
 plot_ordination(prop.full_no_labo, bray.full_no_labo, color="Country", shape="Location", title="Bray NMDS with full body - France vs Guadeloupe without Labo and Aedes aegypti", label="Sample") +
+  labs(title = "Distinction between France and Guadeloupe",
+       caption = "Bray NMDS", x="NMDS1", y = "NMDS2") +
   geom_point(size = 4) +
   scale_shape_manual(values=seq(0,15)) +
   theme_gray()
@@ -456,7 +507,9 @@ bray.intestine_no_lavar <- ordinate(intestine_no_lavar, method="NMDS", distance=
 
 pdf("NMDS_bray_intestine(camping europe, date).pdf")
 #jpeg("NMDS_bray_intestine.jpg")
-plot_ordination(prop.intestine_camping_date, bray.intestine_camping_date, color="Date", title="Bray NMDS with intestine of Culex pipiens in Camping Europe", label="Sample") +
+plot_ordination(prop.intestine_camping_date, bray.intestine_camping_date, color="Date", title="Bray NMDS with intestine of Culex pipiens in Camping Europe", label="Sample")+
+labs(title = "Different bacterial community structure depends on date in Culex pipiens at Camping Europe",
+     caption = "Bray NMDS on intestine", x="NMDS1", y = "NMDS2") +
   geom_point(size = 4) +
   theme_gray()
 dev.off()
@@ -506,18 +559,26 @@ dev.off()
 pdf("NMDS_bray_ovary_filter.pdf")
 #jpeg("NMDS_bray_ovary.jpg")
 plot_ordination(prop.ovary_filter, bray.ovary_filter, color="Date", title="Bray NMDS with ovary - Culex, Camping Europe, Dates", label="Sample") +
+  labs(title = "Different bacterial community structure depends on date in Culex pipiens at Camping Europe",
+       caption = "Bray NMDS on ovary", x="NMDS1", y = "NMDS2") +
   geom_point(size = 4) +
   theme_gray()
 dev.off()
 
 
+
+
+
+
+
 # NMDS of Wolbachia 
 ps_wolbachia_ovary_intestine <- subset_samples(ps_wolbachia, Organ=="Intestine" | Organ=="Ovary")
+ps_wolbachia_ovary_intestine <- subset_samples(ps_wolbachia, Individuals!="0")
 ps_wolbachia_filter <- subset_samples(ps_wolbachia_ovary_intestine, Sample != "S175" & Sample != "NP38" & Sample!="S99" & Sample!="NP22" & Sample!="NP10" & Sample!="S68" &
-                                        Sample!="NP2" & Sample!="NP11" & Sample!="NP8" & Sample!="NP5")
+                                        Sample!="NP2" & Sample!="NP11" & Sample!="NP8" & Sample!="NP5" & Sample!="S176")
 
-prop.wolbachia <- transform_sample_counts(ps_wolbachia, function(count_tab) count_tab/sum(count_tab))
-bray.wolbachia <- ordinate(ps_wolbachia, method="NMDS", distance="bray")
+prop.wolbachia <- transform_sample_counts(ps_wolbachia_ovary_intestine, function(count_tab) count_tab/sum(count_tab))
+bray.wolbachia <- ordinate(ps_wolbachia_ovary_intestine, method="NMDS", distance="bray")
 
 prop.wolbachia_filter <- transform_sample_counts(ps_wolbachia_filter, function(count_tab) count_tab/sum(count_tab))
 bray.wolbachia_filter <- ordinate(ps_wolbachia_filter, method="NMDS", distance="bray")
@@ -525,21 +586,23 @@ bray.wolbachia_filter <- ordinate(ps_wolbachia_filter, method="NMDS", distance="
 
 pdf("NMDS_bray_wolbachia.pdf")
 #jpeg("NMDS_bray_ovary.jpg")
-plot_ordination(prop.wolbachia, bray.wolbachia, color="Individual", shape="Organ", title="Bray NMDS - Wolbachia", label="Sample") +
+plot_ordination(prop.wolbachia, bray.wolbachia, color="Individuals", shape="Organ", title="Bray NMDS - Wolbachia", label="Sample") +
   geom_point(size = 4) +
   theme_gray()
 dev.off() # many samples to remove
 
 pdf("NMDS_bray_wolbachia_filter1.pdf")
 #jpeg("NMDS_bray_ovary.jpg")
-plot_ordination(prop.wolbachia_filter, bray.wolbachia_filter, color="Individual", shape="Organ", title="Bray NMDS - Wolbachia filter", label="Sample") +
+plot_ordination(prop.wolbachia_filter, bray.wolbachia_filter, color="Individuals", shape="Organ", title="Bray NMDS - Wolbachia filter", label="Sample") +
+  labs(title = "Bacterial community seems to depend on organs and not individuals ",
+       caption = "Bray NMDS on Wolbachia", x="NMDS1", y = "NMDS2")+
   geom_point(size = 4) +
   theme_gray()
 dev.off()
 
 pdf("NMDS_bray_wolbachia_filter2.pdf")
 #jpeg("NMDS_bray_ovary.jpg")
-plot_ordination(prop.wolbachia_filter, bray.wolbachia_filter, color="Individual", shape="Location", title="Bray NMDS - Wolbachia filter", label="Sample") +
+plot_ordination(prop.wolbachia_filter, bray.wolbachia_filter, color="Individuals", shape="Location", title="Bray NMDS - Wolbachia filter", label="Sample") +
   geom_point(size = 4) +
   theme_gray()
 dev.off()

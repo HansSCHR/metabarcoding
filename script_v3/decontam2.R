@@ -35,9 +35,10 @@ theme_set(theme_gray()) #set ggplot2 graphic theme
 #---------------------------------------IMPORT DATA------------------------------------------#
 #--------------------------------------------------------------------------------------------#
 
-otu <- read.csv("seqtabnochimcor.csv", sep=";", dec=",")
-taxa <- read.csv("taxafinal.csv", sep=";", dec=",")
+asv_tab <- read.csv("seqtabnochimcor.csv", sep=";", dec=",")
+asv_tax <- read.csv("taxafinal.csv", sep=";", dec=",")
 metadata <- read.csv("metadata_runs.csv", sep=",", row.names = 1)
+load("tree.Rdata")
 
 
 
@@ -46,11 +47,11 @@ metadata <- read.csv("metadata_runs.csv", sep=",", row.names = 1)
 #--------------------------------------------------------------------------------------------#
 
 # giving our seq headers more manageable names (ASV_1, ASV_2...)
-asv_seqs <- rownames(otu)
-asv_headers <- vector(dim(otu)[1], mode="character")
-asv_headers2 <- vector(dim(otu)[1], mode="character") 
+asv_seqs <- rownames(asv_tab)
+asv_headers <- vector(dim(asv_tab)[1], mode="character")
+asv_headers2 <- vector(dim(asv_tab)[1], mode="character")
 
-for (i in 1:dim(otu)[1]) {
+for (i in 1:dim(asv_tab)[1]) {
   asv_headers[i] <- paste(">ASV", i, sep="_")
   asv_headers2[i] <- paste("ASV", i, sep="_")
 }
@@ -60,13 +61,13 @@ asv_fasta <- c(rbind(asv_headers, asv_seqs))
 asv_fasta2 <- cbind(asv_headers2, asv_seqs)
 #write(asv_fasta, "ASVs.fa")
 
-# count table:
-asv_tab <- otu
-row.names(asv_tab) <- sub(">", "", asv_headers)
-
-# tax table:
-asv_tax <- as.matrix(taxa)
-row.names(asv_tax) <- sub(">", "", asv_headers)
+# # count table:
+# asv_tab <- otu
+# row.names(asv_tab) <- sub(">", "", asv_headers)
+# 
+# # tax table:
+# asv_tax <- as.matrix(taxa)
+# row.names(asv_tax) <- sub(">", "", asv_headers)
 
 
 
@@ -75,13 +76,22 @@ row.names(asv_tax) <- sub(">", "", asv_headers)
 #--------------------------------------------------------------------------------------------#
 
 OTU = otu_table(asv_tab, taxa_are_rows =TRUE)
-TAX = tax_table(asv_tax)
+TAX = tax_table(as.matrix(asv_tax))
 SAM = sample_data(metadata)
+TREE = phy_tree(tree)
 
-
-ps <- phyloseq(OTU, TAX, SAM)
-ps <- subset_samples(ps, Species!="CuT" & Species!="CuP" & Species!="CuN" & Species!="CuG")
+ps <- phyloseq(OTU, TAX, SAM, TREE)
+ps <- subset_samples(ps, Species!="CuT" & Species!="CuP" & Species!="CuN" & Species!="CuG") # remove cullicoides
 ps <- prune_samples(sample_sums(ps) >= 1, ps) # remove counts = 0
+
+
+# OTU = otu_table(asv_tab, taxa_are_rows =TRUE)
+# TAX = tax_table(asv_tax)
+# SAM = sample_data(metadata)
+# 
+# ps <- phyloseq(OTU, TAX, SAM)
+# ps <- subset_samples(ps, Species!="CuT" & Species!="CuP" & Species!="CuN" & Species!="CuG") # remove cullicoides
+# ps <- prune_samples(sample_sums(ps) >= 1, ps) # remove counts = 0
 
 
 
@@ -114,7 +124,7 @@ sample_data(ps)$Dna <- as.numeric(get_variable(ps, "Dna"))
 
 sample_data(ps)$is.neg <- sample_data(ps)$Control == "Control sample"
 
-contamdf.prev05 <- isContaminant(ps, method="prevalence", neg="is.neg", threshold=0.5)
+contamdf.prev05 <- isContaminant(ps, method="prevalence", neg="is.neg", threshold=0.1)
 table(contamdf.prev05$contaminant) # 80 contaminants
 
 contam_asvs_prev05 <- row.names(contamdf.prev05[contamdf.prev05$contaminant == TRUE, ])
@@ -185,10 +195,10 @@ write.table(metadata_prev05, "metadata_decontam.tsv", sep="\t", quote=F, col.nam
 #--------------------------------------------------------------------------------------------#
 
 OTU_decontam <- otu_table(asv_tab_prev05, taxa_are_rows = TRUE)
-TAX_decontam <- tax_table(asv_tax_prev05)
+TAX_decontam <- tax_table(as.matrix(asv_tax_prev05))
 SAM_decontam <- sample_data(metadata_prev05)
 
-ps_decontam <- phyloseq(OTU_decontam, TAX_decontam, SAM_decontam)
+ps_decontam <- phyloseq(OTU_decontam, TAX_decontam, SAM_decontam, TREE)
 ps_decontam <- subset_samples(ps_decontam, Control!="Control sample") # remove blanks
 ps_decontam <- subset_taxa(ps_decontam, Kingdom == "Bacteria") # select only Bacteria
 ps_decontam <- prune_samples(sample_sums(ps_decontam) >= 1, ps_decontam) # remove counts = 0 in otu_table
