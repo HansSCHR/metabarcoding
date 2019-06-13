@@ -37,7 +37,7 @@ theme_set(theme_gray()) #set ggplot2 graphic theme
 
 asv_tab <- read.csv("seqtabnochimcor.csv", sep=";", dec=",")
 asv_tax <- read.csv("taxafinal.csv", sep=";", dec=",")
-metadata <- read.csv("metadata_runs.csv", sep=",", row.names = 1)
+metadata <- read.csv("metadata_runs_update_11_06_19.csv", sep=",", row.names = 1)
 load("tree.Rdata")
 
 
@@ -82,6 +82,8 @@ TREE = phy_tree(tree)
 
 ps <- phyloseq(OTU, TAX, SAM, TREE)
 ps <- subset_samples(ps, Species!="CuT" & Species!="CuP" & Species!="CuN" & Species!="CuG") # remove cullicoides
+ps <- subset_samples(ps, Sample!="NP16" & Sample!="NP17" & Sample!="NP18" & Sample!="NP19" & Sample!="S69" & Sample!="S70" & Sample!="S81" & Sample!="S82" & Sample!="NP20" & Sample!="NP21")
+ps <- subset_samples(ps, Organ!="Pool")
 ps <- prune_samples(sample_sums(ps) >= 1, ps) # remove counts = 0
 
 

@@ -12,8 +12,8 @@
 path = "D:/stage/data/runs_new2"
 setwd(path)
 
-dir.create("plotv4") # folder for plot
-path2 <- "D:/stage/data/runs_new2/plotv4"
+dir.create("plotv5") # folder for plot
+path2 <- "D:/stage/data/runs_new2/plotv5"
 
 
 #--------------------------------------------------------------------------------------------#
@@ -174,12 +174,12 @@ ggplot(p1$data,aes(Species,value,colour=Species,shape=Species)) +
 dev.off()
 
 pdf("richness_decontam2_organ.pdf")
-ggplot(p1$data,aes(Organ,value,colour=Organ,shape=Species)) +
+ggplot(p1$data,aes(Organ,value,colour=Species,shape=Organ)) +
   facet_grid(variable ~ Organ, drop=T,scale="free",space="fixed") +
   geom_boxplot(outlier.colour = NA,alpha=0.8, 
                position = position_dodge(width=0.9)) + 
   geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
-  labs(title = "A greater diversity in whole organisms and pooled",
+  labs(title = "A greater diversity in whole organisms",
        caption = "Alpha diversity", y = "Diversity index")
 dev.off()
 
@@ -197,7 +197,7 @@ p <- plot_composition(ps_percent,
                       numberOfTaxa = 20, 
                       fill= "Phylum") +
   facet_wrap(~ Species, scales = "free_x", nrow = 3) + 
-  labs(title = "Proteobacteria is the dominant phylum in species",
+  labs(title = "Proteobacteria is the dominant phylum",
        caption = "Taxonomic composition (20 most abundant phylum)", x="Sample", y = "Abundance") +
   theme_gray()
 
@@ -227,11 +227,11 @@ p <- plot_composition(ps_proteo,
                       taxaRank1 = "Kingdom",
                       taxaSet1 ="Bacteria",
                       taxaRank2 = "Phylum", 
-                      numberOfTaxa = 20, 
+                      numberOfTaxa = 10, 
                       fill= "Class") +
   facet_wrap(~ Species, scales = "free_x", nrow = 3) + 
   theme(plot.title = element_text(hjust = 0.5)) + 
-  labs(title = "Alphaproteobacteria is the dominant class in species",
+  labs(title = "Alphaproteobacteria is the dominant class",
        caption = "Taxonomic composition (class)", x="Sample", y = "Abundance")+
   theme_gray()
 
@@ -243,7 +243,7 @@ p <- plot_composition(ps_proteo,
                       taxaRank1 = "Kingdom",
                       taxaSet1 ="Bacteria",
                       taxaRank2 = "Phylum", 
-                      numberOfTaxa = 15, 
+                      numberOfTaxa = 10, 
                       fill= "Class") +
   facet_wrap(~ Organ, scales = "free_x", nrow = 3) + 
   theme(plot.title = element_text(hjust = 0.5)) + 
@@ -255,6 +255,8 @@ pdf("composition_proteobacteria_organ.pdf")
 plot(p)
 dev.off()
 
+
+# gammaproteo
 p <- plot_composition(ps_proteo,
                       taxaRank1 = "Class",
                       taxaSet1 ="Gammaproteobacteria",
@@ -287,55 +289,45 @@ pdf("composition_gammaproteobacteria_organ.pdf")
 plot(p)
 dev.off()
 
+
+
+# alphaproteo
 p <- plot_composition(ps_proteo,
                       taxaRank1 = "Class",
                       taxaSet1 ="Alphaproteobacteria",
                       taxaRank2 = "Genus", 
-                      numberOfTaxa = 15, 
+                      numberOfTaxa = 8, 
                       fill= "Genus") +
   facet_wrap(~ Species, scales = "free_x", nrow = 5) + 
   theme(plot.title = element_text(hjust = 0.5)) + 
-  labs(title = "Wolbachia is the dominant class within Alphaproteobacteria in species",
-       caption = "Taxonomic composition (15 most abundant class)", x="Sample", y = "Abundance") +
+  labs(title = "Wolbachia is the dominant class within Alphaproteobacteria",
+       caption = "Taxonomic composition (10 most abundant class)", x="Sample", y = "Abundance") +
   theme_gray()
 
 pdf("composition_alphaproteobacteria_species.pdf")
 plot(p)
 dev.off()
 
-# test2 <- test[1,6] =="Allorhizobium-Neorhizobium-Pararhizobium-Rhizobium"
-# test[1,6]
-# 
-# test2 <- c()
-# for (i in 1:nrow(test)){
-#   #print(test[i,6])
-#   new <- (test[i,]=="Allorhizobium-Neorhizobium-Pararhizobium-Rhizobium")
-#   test2 <- c(test2,new)
-# }
-# 
-# test2 <- data.frame(test2)
-# test2[1,]==TRUE
-# for (i in 1:nrow(test2)){
-#   print(test2[i,]==TRUE)
-# }
-# test[1,6]
 
 
 p <- plot_composition(ps_proteo,
                       taxaRank1 = "Class",
                       taxaSet1 ="Alphaproteobacteria",
                       taxaRank2 = "Genus", 
-                      numberOfTaxa = 15, 
+                      numberOfTaxa = 10, 
                       fill= "Genus") +
-  facet_wrap(~ Organ, scales = "free_x", nrow=5) + 
+  facet_wrap(~ "Ovary", scales = "free_x", nrow=5) + 
   labs(title = "Wolbachia is the dominant class within Alphaproteobacteria in organism",
-       caption = "Taxonomic composition (15 most abundant class)", x="Sample", y = "Abundance") +
+       caption = "Taxonomic composition (10 most abundant class)", x="Sample", y = "Abundance") +
   theme_gray()
 
 pdf("composition_alphaproteobacteria_organ.pdf")
 plot(p)
 dev.off()
 
+
+
+#deltaproteo
 p <- plot_composition(ps_proteo,
                       taxaRank1 = "Class",
                       taxaSet1 ="Deltaproteobacteria",
@@ -369,6 +361,12 @@ dev.off()
 
 test <- as(tax_table(ps_proteo),"matrix")
 
+
+
+
+
+
+
 #--------------------------------------------------------------------------------------------#
 #------------------------------------------PCOA----------------------------------------------#
 #--------------------------------------------------------------------------------------------#
@@ -395,6 +393,11 @@ plot_ordination(ps_percent, ordinate(ps_percent, method ="MDS", distance = "bray
 dev.off()
 
 
+
+
+
+
+
 #--------------------------------------------------------------------------------------------#
 #-----------------------------------NMMDS (bray distance)------------------------------------#
 #--------------------------------------------------------------------------------------------#
@@ -416,7 +419,7 @@ intestine_filter <- subset_samples(intestine_camping_date, Sample !="NP17" & Sam
 ovary <- subset_samples(ps_percent, Organ == "Ovary")
 ovary_culex_camping <- subset_samples(ovary, Species=="Culex pipiens" & Location == "Camping Europe")
 ovary_culex_camping_date <- subset_samples(ovary_culex_camping, Date =="30/05/2017" | Date =="28/06/2017")
-ovary_filter <- subset_samples(ovary_culex_camping_date, Sample !="S103" & Sample !="S81" & Sample != "S82")
+ovary_filter <- subset_samples(ovary_culex_camping_date, Sample !="S103")
 
 
 
@@ -434,7 +437,7 @@ bray.full_no_labo <- ordinate(full_no_labo, method="NMDS", distance="bray")
 pdf("NMDS_bray_full(without full vs pool).pdf")
 #jpeg("NMDS_bray_fullbody.jpg")
 plot_ordination(prop.full, bray.full, color="Species", title="Bray NMDS with full body", label="Sample") +
-  labs(title = "Species have a specific bacterial community structure",
+  labs(title = "Does species influence bacterial community structure ? ",
        caption = "Bray NMDS", x="NMDS1", y = "NMDS2")+
   geom_point(size = 4) +
   theme_gray()
@@ -442,7 +445,7 @@ dev.off()
 
 pdf("NMDS_bray_full(with full vs pool).pdf")
 #jpeg("NMDS_bray_fullbody.jpg")
-plot_ordination(prop.full, bray.full, color="Species", shape="Organ", title="Bray NMDS with full body - Full vs Pool", label="Sample") +
+plot_ordination(prop.full, bray.full, color="Organ", shape="Species", title="Bray NMDS with full body - Full vs Pool", label="Sample") +
   labs(title = "Whole and pooled organisms don't show any difference",
        caption = "Bray NMDS", x="NMDS1", y = "NMDS2") +
   geom_point(size = 4) +
@@ -458,8 +461,17 @@ dev.off()
 
 pdf("NMDS_bray_full(without aedes).pdf")
 #jpeg("NMDS_bray_fullbody.jpg")
-plot_ordination(prop.full_no_aedes, bray.full_no_aedes, color="Species", shape="Location", title="Bray NMDS with full body - Location without Aedes aegypti", label="Sample") +
-  labs(title = "Culex share similarities",
+plot_ordination(prop.full_no_aedes, bray.full_no_aedes, color="Field", shape="Location", title="Bray NMDS with full body - Location without Aedes aegypti", label="Sample") +
+  labs(title = "Do antibiotics influence microbiote ? ",
+       caption = "Bray NMDS", x="NMDS1", y = "NMDS2") +
+  geom_point(size = 4) +
+  theme_gray()
+dev.off()
+
+pdf("NMDS_bray_full(without aedes)2.pdf")
+#jpeg("NMDS_bray_fullbody.jpg")
+plot_ordination(prop.full_no_aedes, bray.full_no_aedes, color="Field", shape="Species", title="Bray NMDS with full body - Location without Aedes aegypti", label="Sample") +
+  labs(title = "Does laboratory influence microbiote ?",
        caption = "Bray NMDS", x="NMDS1", y = "NMDS2") +
   geom_point(size = 4) +
   theme_gray()
@@ -508,8 +520,8 @@ bray.intestine_no_lavar <- ordinate(intestine_no_lavar, method="NMDS", distance=
 pdf("NMDS_bray_intestine(camping europe, date).pdf")
 #jpeg("NMDS_bray_intestine.jpg")
 plot_ordination(prop.intestine_camping_date, bray.intestine_camping_date, color="Date", title="Bray NMDS with intestine of Culex pipiens in Camping Europe", label="Sample")+
-labs(title = "Different bacterial community depends on date in C. pipiens at Camping Europe",
-     caption = "Bray NMDS on intestine", x="NMDS1", y = "NMDS2") +
+  labs(title = expression(paste("Does date influence the microbiote of ", italic("Culex pipiens"),"?")),
+     caption = "Bray NMDS on intestine at Camping Europe", x="NMDS1", y = "NMDS2") +
   geom_point(size = 4) +
   theme_gray()
 dev.off()
@@ -541,26 +553,27 @@ bray.ovary_culex_camping_date <- ordinate(ovary_culex_camping_date, method="NMDS
 prop.ovary_filter <- transform_sample_counts(ovary_filter, function(count_tab) count_tab/sum(count_tab))
 bray.ovary_filter <- ordinate(ovary_filter, method="NMDS", distance="bray")
 
-# pdf("NMDS_bray_ovary.pdf")
-# #jpeg("NMDS_bray_ovary.jpg")
-# plot_ordination(prop.ovary, bray.ovary, color="Species", shape="Date", title="Bray NMDS with ovary", label="Sample") +
-#   geom_point(size = 4) +
-#   theme_gray()
-# dev.off()
-# 
-# # S103, S81, S82 bordeline
-# pdf("NMDS_bray_ovary_camping_culex_date.pdf")
-# #jpeg("NMDS_bray_ovary.jpg")
-# plot_ordination(prop.ovary_culex_camping_date, bray.ovary_culex_camping_date, color="Date", title="Bray NMDS with ovary - Culex, Camping Europe, Dates", label="Sample") +
-#   geom_point(size = 4) +
-#   theme_gray()
-# dev.off()
-
-pdf("NMDS_bray_ovary_filter.pdf")
+pdf("NMDS_bray_ovary.pdf")
 #jpeg("NMDS_bray_ovary.jpg")
+plot_ordination(prop.ovary, bray.ovary, color="Species", shape="Date", title="Bray NMDS with ovary", label="Sample") +
+  geom_point(size = 4) +
+  theme_gray()
+dev.off()
+
+# S103 = outlier
+pdf("NMDS_bray_ovary_camping_culex_date.pdf")
+#jpeg("NMDS_bray_ovary.jpg")
+plot_ordination(prop.ovary_culex_camping_date, bray.ovary_culex_camping_date, color="Date", title="Bray NMDS with ovary - Culex, Camping Europe, Dates", label="Sample") +
+  geom_point(size = 4) +
+  theme_gray()
+dev.off()
+
+
+pdf("NMDS_bray_ovary_filter.pdf") 
+#jpeg("NMDS_bray_ovary.jpg") 
 plot_ordination(prop.ovary_filter, bray.ovary_filter, color="Date", title="Bray NMDS with ovary - Culex, Camping Europe, Dates", label="Sample") +
-  labs(title = "Different bacterial community depends on date in C. pipiens at Camping Europe",
-       caption = "Bray NMDS on ovary", x="NMDS1", y = "NMDS2") +
+  labs(title = expression(paste("Does date influence the microbiote of ", italic("Culex pipiens"),"?")),
+       caption = "Bray NMDS on ovary at Camping Europe", x="NMDS1", y = "NMDS2") +
   geom_point(size = 4) +
   theme_gray()
 dev.off()
@@ -665,19 +678,19 @@ dev.off()
 #-------------------------------------------ADONIS-------------------------------------------#
 #--------------------------------------------------------------------------------------------#
 
-adonis(vegdist(t(otu_table(ps_percent)), method = "bray") ~ Organ*Location*Date,
+adonis(vegdist(t(otu_table(ps_percent)), method = "bray") ~ Organ*Location*Date*Species,
        data=as(sample_data(ps_percent), "data.frame"), permutation = 9999)
 
-#                 Df  SumsOfSqs MeanSqs F.Model     R2 Pr(>F)    
-# Organ            4     6.244 1.56097  8.1461 0.10782 0.0001 ***
-# Location         4    10.197 2.54920 13.3033 0.17608 0.0001 ***
-# Date             4     2.744 0.68590  3.5795 0.04738 0.0001 ***
-# Organ:Location   7     3.926 0.56082  2.9267 0.06779 0.0001 ***
-# Organ:Date       5     0.882 0.17636  0.9204 0.01523 0.5769    
-# Residuals      177    33.917 0.19162         0.58570           
-# Total          201    57.909                 1.00000           
-# ---
-#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#                 Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+# Organ            3     6.240 2.08007 13.2550 0.12588 0.0001 ***
+# Location         4     9.649 2.41228 15.3719 0.19464 0.0001 ***
+# Date             4     2.406 0.60157  3.8335 0.04854 0.0001 ***
+# Species          1     1.181 1.18073  7.5241 0.02382 0.0001 ***
+# Organ:Location   7     3.819 0.54564  3.4770 0.07705 0.0001 ***
+# Organ:Date       5     0.756 0.15120  0.9635 0.01525 0.4851    
+# Organ:Species    3     0.571 0.19024  1.2123 0.01151 0.3159    
+# Residuals      159    24.951 0.15693         0.50332           
+# Total          186    49.574                 1.00000 
 
 
 adonis(vegdist(t(otu_table(ps_wolbachia)), method = "bray") ~ Organ*Location*Individual,
