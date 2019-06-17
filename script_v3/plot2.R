@@ -141,8 +141,8 @@ dev.off()
 #-------------------------------------ALPHA DIVERSITY----------------------------------------#
 #--------------------------------------------------------------------------------------------#
 
-data1 <-  filter_taxa(ps_decontam2), 
-                      function(x) sum(x >= 10) > (1), 
+data1 <-  filter_taxa(ps_decontam2,
+                      function(x) sum(x >= 10) > (1),
                       prune =  TRUE) 
 
 
@@ -187,137 +187,111 @@ dev.off()
 
 
 
-# Whole organim - Field *
-ps_decontam2_fullfield <- subset_samples(ps_decontam2, Organ=="Full" & Field=="Field")
-data2 <-  filter_taxa(ps_decontam2_fullfield, 
-                      function(x) sum(x >= 10) > (1), 
-                      prune =  TRUE) 
-p1 <- plot_richness(data2, 
-                    x="Sample", 
-                    color="Species", 
-                    measures=c("Observed","Shannon", "Chao1"), 
-                    nrow = 1) +
-  ggtitle("Alpha diversity")
-# pdf("richness_ps_decontam2_species.pdf")
-# print(p1)
-# dev.off()
-
-
-
-pdf("richness_decontam2_fullfield.pdf")
-ggplot(p1$data,aes(Species,value,colour=Species,shape=Species)) +
-  facet_grid(variable ~ Species, drop=T,scale="free",space="fixed") +
-  geom_boxplot(outlier.colour = NA,alpha=0.8, 
-               position = position_dodge(width=0.9)) + 
-  geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
-  labs(title = "A greater diversity in Guadeloupe within samples from field",
-       caption = "Alpha diversity", y = "Diversity index")
-dev.off()
-
-
-
-
-
-# Whole organim - Labo 
-ps_decontam2_labfull <- subset_samples(ps_decontam2, Location=="Lavar" | Location=="Labo Tetracycline" & Organ=="Full")
-data3 <-  filter_taxa(ps_decontam2_labfull, 
-                      function(x) sum(x >= 10) > (1), 
-                      prune =  TRUE) 
-p1 <- plot_richness(data3, 
-                    x="Sample", 
-                    color="Species", 
-                    measures=c("Observed","Shannon", "Chao1"), 
-                    nrow = 1) +
-  ggtitle("Alpha diversity")
-# pdf("richness_ps_decontam2_species.pdf")
-# print(p1)
-# dev.off()
-
-
-
-pdf("richness_decontam2_labfull.pdf")
-ggplot(p1$data,aes(Species,value,colour=Species,shape=Species)) +
-  facet_grid(variable ~ Species, drop=T,scale="free",space="fixed") +
-  geom_boxplot(outlier.colour = NA,alpha=0.8, 
-               position = position_dodge(width=0.9)) + 
-  geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
-  labs(title = "A greater diversity in Guadeloupe within samples from labo",
-       caption = "Alpha diversity", y = "Diversity index")
-dev.off()
-
-
-
-# Ovary, Intestine, Salivary gland - Field
-ps_decontam2_organsfield <- subset_samples(ps_decontam2, Field=="Field" & Organ!="Full")
-data4 <-  filter_taxa(ps_decontam2_organsfield, 
+# Culex pipiens - lab vs field
+ps_pipiens <- subset_samples(ps_decontam2, Species=="Culex pipiens" & Organ!="Salivary gland")
+data4 <-  filter_taxa(ps_pipiens, 
                       function(x) sum(x >= 10) > (1), 
                       prune =  TRUE) 
 
 p1 <- plot_richness(data4, 
                     x="Sample", 
-                    color="Species", 
-                    measures=c("Observed","Shannon", "Chao1"), 
-                    nrow = 1) +
-  ggtitle("Alpha diversity")
-# pdf("richness_ps_decontam2_species.pdf")
-# print(p1)
-# dev.off()
-
-p2 <- plot_richness(data4, 
-                    x="Sample", 
-                    color="Organ", 
+                    color="Field", 
                     measures=c("Observed","Shannon", "Chao1"), 
                     nrow = 1) +
   ggtitle("Alpha diversity")
 
 
-pdf("richness_decontam2_organsfield1.pdf")
-ggplot(p1$data,aes(Species,value,colour=Species,shape=Species)) +
-  facet_grid(variable ~ Species, drop=T,scale="free",space="fixed") +
-  geom_boxplot(outlier.colour = NA,alpha=0.8, 
-               position = position_dodge(width=0.9)) + 
-  geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
-  labs(title = "A greater diversity in Guadeloupe for organs within samples from field",
-       caption = "Alpha diversity", y = "Diversity index")
-dev.off()
-
-pdf("richness_decontam2_organsfield2.pdf")
-ggplot(p1$data,aes(Species,value,colour=Species,shape=Species)) +
+pdf("richness_pipiens_organs.pdf")
+ggplot(p1$data,aes(Species,value,colour=Field)) +
   facet_grid(variable ~ Organ, drop=T,scale="free",space="fixed") +
   geom_boxplot(outlier.colour = NA,alpha=0.8, 
                position = position_dodge(width=0.9)) + 
   geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
-  labs(title = "A greater diversity for ovary of Culex quinquefasciatus within samples from field",
+  labs(title = expression(paste("A greater diversity in Ovary and Whole from Lab within ", italic("Culex pipiens"))),
        caption = "Alpha diversity", y = "Diversity index")
 dev.off()
 
 
-# Ovary, Intestine, Salivary gland - Labo
-ps_decontam2_organslab <- subset_samples(ps_decontam2, Location=="Lavar" | Location=="Labo Tetracycline")
-ps_decontam2_organslab <- subset_samples(ps_decontam2_organslab, Organ!="Full")
-data5 <-  filter_taxa(ps_decontam2_organslab, 
+
+
+# Culex pipiens labo vs Culex quinque field
+ps_quinque_fieldvslabo <- subset_samples(ps_decontam2, Species=="Culex quinquefasciatus" & Organ=="Full")
+
+data2 <-  filter_taxa(ps_quinque_fieldvslabo, 
                       function(x) sum(x >= 10) > (1), 
                       prune =  TRUE) 
 
-p1 <- plot_richness(data5, 
+p1 <- plot_richness(data2, 
                     x="Sample", 
-                    color="Species", 
+                    color="Field", 
                     measures=c("Observed","Shannon", "Chao1"), 
                     nrow = 1) +
   ggtitle("Alpha diversity")
-# pdf("richness_ps_decontam2_species.pdf")
-# print(p1)
+
+pdf("richness_quinque_full_labofield.pdf")
+ggplot(p1$data,aes(Species,value,colour=Field,shape=Location)) +
+  facet_grid(variable ~ Species, drop=T,scale="free",space="fixed") +
+  geom_boxplot(outlier.colour = NA,alpha=0.8, 
+               position = position_dodge(width=0.9)) + 
+  geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
+  labs(title = expression(paste("A greater diversity in Lab within Whole ", italic("Culex quinquefasciatus")," samples")),
+       caption = "Alpha diversity", y = "Diversity index")
+dev.off()
+
+
+
+
+
+
+# # Whole organim - Field *
+# ps_decontam2_fullfield <- subset_samples(ps_decontam2, Organ=="Full" & Field=="Field")
+# data2 <-  filter_taxa(ps_decontam2_fullfield, 
+#                       function(x) sum(x >= 10) > (1), 
+#                       prune =  TRUE) 
+# p1 <- plot_richness(data2, 
+#                     x="Sample", 
+#                     color="Species", 
+#                     measures=c("Observed","Shannon", "Chao1"), 
+#                     nrow = 1) +
+#   ggtitle("Alpha diversity")
+# # pdf("richness_ps_decontam2_species.pdf")
+# # print(p1)
+# # dev.off()
+# 
+# 
+# 
+# pdf("richness_decontam2_fullfield.pdf")
+# ggplot(p1$data,aes(Species,value,colour=Species,shape=Species)) +
+#   facet_grid(variable ~ Species, drop=T,scale="free",space="fixed") +
+#   geom_boxplot(outlier.colour = NA,alpha=0.8, 
+#                position = position_dodge(width=0.9)) + 
+#   geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
+#   labs(title = "A greater diversity in Guadeloupe within samples from field",
+#        caption = "Alpha diversity", y = "Diversity index")
 # dev.off()
 
-p2 <- plot_richness(data5, 
-                    x="Sample", 
-                    color="Organ", 
-                    measures=c("Observed","Shannon", "Chao1"), 
-                    nrow = 1) +
-  ggtitle("Alpha diversity")
 
 
-# pdf("richness_decontam2_organslab1.pdf")
+
+
+# # Whole organim - Labo 
+# ps_decontam2_labfull <- subset_samples(ps_decontam2, Location=="Lavar" | Location=="Labo Tetracycline" & Organ=="Full")
+# data3 <-  filter_taxa(ps_decontam2_labfull, 
+#                       function(x) sum(x >= 10) > (1), 
+#                       prune =  TRUE) 
+# p1 <- plot_richness(data3, 
+#                     x="Sample", 
+#                     color="Species", 
+#                     measures=c("Observed","Shannon", "Chao1"), 
+#                     nrow = 1) +
+#   ggtitle("Alpha diversity")
+# # pdf("richness_ps_decontam2_species.pdf")
+# # print(p1)
+# # dev.off()
+# 
+# 
+# 
+# pdf("richness_decontam2_labfull.pdf")
 # ggplot(p1$data,aes(Species,value,colour=Species,shape=Species)) +
 #   facet_grid(variable ~ Species, drop=T,scale="free",space="fixed") +
 #   geom_boxplot(outlier.colour = NA,alpha=0.8, 
@@ -327,16 +301,122 @@ p2 <- plot_richness(data5,
 #        caption = "Alpha diversity", y = "Diversity index")
 # dev.off()
 
-pdf("richness_decontam2_organslab2.pdf")
-ggplot(p1$data,aes(Species,value,colour=Species,shape=Species)) +
-  facet_grid(variable ~ Organ, drop=T,scale="free",space="fixed") +
-  geom_boxplot(outlier.colour = NA,alpha=0.8, 
-               position = position_dodge(width=0.9)) + 
-  geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
-  labs(title = "Same diversity for ovary and intestine from labo Culex pipiens",
-       caption = "Alpha diversity", y = "Diversity index")
-dev.off()
 
+
+
+
+
+# # Ovary, Intestine, Salivary gland - Field
+# ps_decontam2_organsfield <- subset_samples(ps_decontam2, Field=="Field" & Organ!="Full")
+# data4 <-  filter_taxa(ps_decontam2_organsfield, 
+#                       function(x) sum(x >= 10) > (1), 
+#                       prune =  TRUE) 
+# 
+# p1 <- plot_richness(data4, 
+#                     x="Sample", 
+#                     color="Species", 
+#                     measures=c("Observed","Shannon", "Chao1"), 
+#                     nrow = 1) +
+#   ggtitle("Alpha diversity")
+# # pdf("richness_ps_decontam2_species.pdf")
+# # print(p1)
+# # dev.off()
+# 
+# p2 <- plot_richness(data4, 
+#                     x="Sample", 
+#                     color="Organ", 
+#                     measures=c("Observed","Shannon", "Chao1"), 
+#                     nrow = 1) +
+#   ggtitle("Alpha diversity")
+# 
+# 
+# pdf("richness_decontam2_organsfield1.pdf")
+# ggplot(p1$data,aes(Species,value,colour=Species,shape=Species)) +
+#   facet_grid(variable ~ Species, drop=T,scale="free",space="fixed") +
+#   geom_boxplot(outlier.colour = NA,alpha=0.8, 
+#                position = position_dodge(width=0.9)) + 
+#   geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
+#   labs(title = "A greater diversity in Guadeloupe for organs within samples from field",
+#        caption = "Alpha diversity", y = "Diversity index")
+# dev.off()
+# 
+# pdf("richness_decontam2_organsfield2.pdf")
+# ggplot(p1$data,aes(Species,value,colour=Species,shape=Species)) +
+#   facet_grid(variable ~ Organ, drop=T,scale="free",space="fixed") +
+#   geom_boxplot(outlier.colour = NA,alpha=0.8, 
+#                position = position_dodge(width=0.9)) + 
+#   geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
+#   labs(title = "A greater diversity for ovary of Culex quinquefasciatus within samples from field",
+#        caption = "Alpha diversity", y = "Diversity index")
+# dev.off()
+# 
+# 
+# # Ovary, Intestine, Salivary gland - Labo
+# ps_decontam2_organslab <- subset_samples(ps_decontam2, Location=="Lavar" | Location=="Labo Tetracycline")
+# ps_decontam2_organslab <- subset_samples(ps_decontam2_organslab, Organ!="Full")
+# data5 <-  filter_taxa(ps_decontam2_organslab, 
+#                       function(x) sum(x >= 10) > (1), 
+#                       prune =  TRUE) 
+# 
+# p1 <- plot_richness(data5, 
+#                     x="Sample", 
+#                     color="Species", 
+#                     measures=c("Observed","Shannon", "Chao1"), 
+#                     nrow = 1) +
+#   ggtitle("Alpha diversity")
+# # pdf("richness_ps_decontam2_species.pdf")
+# # print(p1)
+# # dev.off()
+# 
+# p2 <- plot_richness(data5, 
+#                     x="Sample", 
+#                     color="Organ", 
+#                     measures=c("Observed","Shannon", "Chao1"), 
+#                     nrow = 1) +
+#   ggtitle("Alpha diversity")
+# 
+# 
+# # pdf("richness_decontam2_organslab1.pdf")
+# # ggplot(p1$data,aes(Species,value,colour=Species,shape=Species)) +
+# #   facet_grid(variable ~ Species, drop=T,scale="free",space="fixed") +
+# #   geom_boxplot(outlier.colour = NA,alpha=0.8, 
+# #                position = position_dodge(width=0.9)) + 
+# #   geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
+# #   labs(title = "A greater diversity in Guadeloupe within samples from labo",
+# #        caption = "Alpha diversity", y = "Diversity index")
+# # dev.off()
+# 
+# pdf("richness_decontam2_organslab2.pdf")
+# ggplot(p1$data,aes(Species,value,colour=Species,shape=Species)) +
+#   facet_grid(variable ~ Organ, drop=T,scale="free",space="fixed") +
+#   geom_boxplot(outlier.colour = NA,alpha=0.8, 
+#                position = position_dodge(width=0.9)) + 
+#   geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
+#   labs(title = "Same diversity for ovary and intestine from labo Culex pipiens",
+#        caption = "Alpha diversity", y = "Diversity index")
+# dev.off()
+
+# data4 <-  filter_taxa(ps_wolbachia, 
+#                       function(x) sum(x >= 10) > (1), 
+#                       prune =  TRUE) 
+# 
+# p1 <- plot_richness(data4, 
+#                     x="Sample", 
+#                     color="Field", 
+#                     measures=c("Observed","Shannon", "Chao1"), 
+#                     nrow = 1) +
+#   ggtitle("Alpha diversity")
+# 
+# 
+# pdf("richness_pipiens_organs.pdf")
+# ggplot(p1$data,aes(Species,value,colour=Field,)) +
+#   facet_grid(variable ~ Field, drop=T,scale="free",space="fixed") +
+#   geom_boxplot(outlier.colour = NA,alpha=0.8, 
+#                position = position_dodge(width=0.9)) + 
+#   geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
+#   labs(title = "A greater diversity in lab for Culex quinquefasciatus organs",
+#        caption = "Alpha diversity", y = "Diversity index")
+# dev.off()
 
 
 #--------------------------------------------------------------------------------------------#
@@ -516,6 +596,40 @@ dev.off()
 test <- as(tax_table(ps_proteo),"matrix")
 
 
+
+#wolbachia
+p <- plot_composition(ps_proteo,
+                      taxaRank1 = "Genus",
+                      taxaSet1 ="Wolbachia",
+                      taxaRank2 = "Genus", 
+                      numberOfTaxa = 15, 
+                      fill= "Genus") +
+  facet_wrap(~ Species, scales = "free_x", nrow = 5) + 
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  labs(title = "Taxonomic composition - Deltaproteobacteria",
+       caption = "Taxonomic composition (8 most abundant class)", x="Sample", y = "Abundance")+
+  theme_gray()
+
+pdf("composition_deltaproteobacteria_species.pdf")
+plot(p)
+dev.off()
+
+p <- plot_composition(ps_proteo,
+                      taxaRank1 = "Genus",
+                      taxaSet1 ="Wolbachia",
+                      taxaRank2 = "Genus", 
+                      numberOfTaxa = 20, 
+                      fill= "Genus") +
+  facet_wrap(~ Organ, scales = "free_x", nrow = 5) + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  ggtitle("Taxonomic composition - Deltaproteobacteria") +
+  theme_gray()
+
+pdf("composition_deltaproteobacteria_organ.pdf")
+plot(p)
+dev.off()
+
+test <- as(tax_table(ps_proteo),"matrix")
 
 
 
@@ -741,8 +855,9 @@ dev.off()
 # NMDS of Wolbachia 
 ps_wolbachia_ovary_intestine <- subset_samples(ps_wolbachia, Organ=="Intestine" | Organ=="Ovary")
 ps_wolbachia_ovary_intestine <- subset_samples(ps_wolbachia, Individuals!="0")
-ps_wolbachia_filter <- subset_samples(ps_wolbachia_ovary_intestine, Sample != "S175" & Sample != "NP38" & Sample!="S99" & Sample!="NP22" & Sample!="NP10" & Sample!="S68" &
-                                        Sample!="NP2" & Sample!="NP11" & Sample!="NP8" & Sample!="NP5" & Sample!="S176")
+ps_wolbachia_filter <- subset_samples(ps_wolbachia_ovary_intestine, Sample != "S175" & Sample != "S68" & Sample!="S99")
+# ps_wolbachia_filter <- subset_samples(ps_wolbachia_ovary_intestine, Sample != "S175" & Sample != "NP38" & Sample!="S99" & Sample!="NP22" & Sample!="NP10" & Sample!="S68" &
+#                                         Sample!="NP2" & Sample!="NP11" & Sample!="NP8" & Sample!="NP5" & Sample!="S176")
 
 prop.wolbachia <- transform_sample_counts(ps_wolbachia_ovary_intestine, function(count_tab) count_tab/sum(count_tab))
 bray.wolbachia <- ordinate(ps_wolbachia_ovary_intestine, method="NMDS", distance="bray")
@@ -751,17 +866,17 @@ prop.wolbachia_filter <- transform_sample_counts(ps_wolbachia_filter, function(c
 bray.wolbachia_filter <- ordinate(ps_wolbachia_filter, method="NMDS", distance="bray")
 
 
-# pdf("NMDS_bray_wolbachia.pdf")
-# #jpeg("NMDS_bray_ovary.jpg")
-# plot_ordination(prop.wolbachia, bray.wolbachia, color="Individuals", shape="Organ", title="Bray NMDS - Wolbachia", label="Sample") +
-#   geom_point(size = 4) +
-#   theme_gray()
-# dev.off() # many samples to remove
-
-pdf("NMDS_bray_wolbachia_filter1.pdf")
+pdf("NMDS_bray_wolbachia.pdf")
 #jpeg("NMDS_bray_ovary.jpg")
-plot_ordination(prop.wolbachia_filter, bray.wolbachia_filter, color="Individuals", shape="Organ", title="Bray NMDS - Wolbachia filter", label="Sample") +
-  labs(title = "Bacterial community seems to depend on organs and not individuals ",
+plot_ordination(prop.wolbachia, bray.wolbachia, color="Individuals", shape="Organ", title="Bray NMDS - Wolbachia", label="Sample") +
+  geom_point(size = 4) +
+  theme_gray()
+dev.off() # outliers = S68 S175 S99
+
+pdf("NMDS_bray_wolbachia_filter.pdf") # removing outliers 
+#jpeg("NMDS_bray_ovary.jpg")
+plot_ordination(prop.wolbachia_filter, bray.wolbachia_filter, color="Individuals", shape="Organ", title="Bray NMDS - Wolbachia filter", label="Individuals") +
+  labs(title = "Does structure of Wolbachia bacterial community depend on individual or organ?  ",
        caption = "Bray NMDS on Wolbachia", x="NMDS1", y = "NMDS2")+
   geom_point(size = 4) +
   theme_gray()
@@ -832,6 +947,7 @@ dev.off()
 #-------------------------------------------ADONIS-------------------------------------------#
 #--------------------------------------------------------------------------------------------#
 
+# ALL DATA
 adonis(vegdist(t(otu_table(ps_percent)), method = "bray") ~ Organ*Location*Date*Species,
        data=as(sample_data(ps_percent), "data.frame"), permutation = 9999)
 
@@ -847,6 +963,57 @@ adonis(vegdist(t(otu_table(ps_percent)), method = "bray") ~ Organ*Location*Date*
 # Total          186    49.574                 1.00000 
 
 
+ps_whole <- subset_samples(ps_percent, Organ=="Full" & Species!="Aedes aegypti")
+adonis(vegdist(t(otu_table(ps_whole)), method = "bray") ~ Location*Date*Species,
+       data=as(sample_data(ps_whole), "data.frame"), permutation = 9999)
+
+#            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+# Location   4    9.0662 2.26655 15.0794 0.43306  1e-04 ***
+# Date       3    1.9487 0.64957  4.3216 0.09308  1e-04 ***
+# Residuals 66    9.9203 0.15031         0.47386           
+# Total     73   20.9352                 1.00000           
+# ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+
+ps_ovary_intestine_ce <- subset_samples(ps_percent, Organ=="Ovary" | Organ=="Intestine" & Location=="Camping Europe")
+adonis(vegdist(t(otu_table(ps_ovary_intestine_ce)), method = "bray") ~ Organ*Date*Species,
+       data=as(sample_data(ps_ovary_intestine_ce), "data.frame"), permutation = 9999)
+
+#            Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+# Organ       1    1.4193 1.41929 13.9943 0.17241 0.0001 ***
+#   Date        5    0.3270 0.06539  0.6448 0.03972 0.8757    
+# Species     1    0.0058 0.00581  0.0573 0.00071 0.7109    
+# Organ:Date  2    0.3950 0.19751  1.9475 0.04798 0.0513 .  
+# Residuals  60    6.0851 0.10142         0.73919           
+# Total      69    8.2322                 1.00000           
+# ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+
+
+ps_intestine_ce <- subset_samples(ps_percent, Organ=="Intestine" & Location=="Camping Europe")
+adonis(vegdist(t(otu_table(ps_intestine_ce)), method = "bray") ~ Date,
+       data=as(sample_data(ps_intestine_ce), "data.frame"), permutation = 9999)
+
+#           Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
+# Date       2    0.6318 0.31589  0.9882 0.09894 0.4027
+# Residuals 18    5.7538 0.31966         0.90106       
+# Total     20    6.3856                 1.00000 
+
+
+ps_ovary_ce <- subset_samples(ps_percent, Organ=="Ovary" & Location=="Camping Europe")
+adonis(vegdist(t(otu_table(ps_ovary_ce)), method = "bray") ~ Date,
+       data=as(sample_data(ps_ovary_ce), "data.frame"), permutation = 9999)
+
+#           Df SumsOfSqs   MeanSqs F.Model      R2 Pr(>F)
+# Date       2  0.013597 0.0067984 0.51535 0.05146 0.6096
+# Residuals 19  0.250645 0.0131918         0.94854       
+# Total     21  0.264241                   1.00000 
+
+
+
+# WOLBACHIA
 adonis(vegdist(t(otu_table(ps_wolbachia)), method = "bray") ~ Organ*Location*Individual,
        data=as(sample_data(ps_wolbachia), "data.frame"), permutation = 9999)
 
@@ -880,7 +1047,7 @@ adonis(vegdist(t(otu_table(ps_wolbachia_ovary_intestine)), method = "bray") ~Org
 adonis(vegdist(t(otu_table(ps_wolbachia_ovary_intestine)), method = "bray") ~Organ,
        data=as(sample_data(ps_wolbachia_ovary_intestine), "data.frame"), permutation = 9999)
 
-# Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+#           Df SumsOfSqs MeanSqs F.Model      R2  Pr(>F)    
 # Organ      1    0.9813 0.98131  10.981 0.12341  1e-04 ***
 # Residuals 78    6.9706 0.08937         0.87659           
 # Total     79    7.9520                 1.00000  
@@ -889,7 +1056,7 @@ adonis(vegdist(t(otu_table(ps_wolbachia_ovary_intestine)), method = "bray") ~Org
 adonis(vegdist(t(otu_table(ps_wolbachia_ovary_intestine)), method = "bray") ~Individual,
        data=as(sample_data(ps_wolbachia_ovary_intestine), "data.frame"), permutation = 9999)
 
-# Df SumsOfSqs  MeanSqs F.Model      R2 Pr(>F)
+#            Df SumsOfSqs  MeanSqs F.Model      R2 Pr(>F)
 # Individual 43    4.2967 0.099922 0.98411 0.54033 0.4975
 # Residuals  36    3.6553 0.101536         0.45967       
 # Total      79    7.9520                  1.00000 
@@ -898,7 +1065,7 @@ adonis(vegdist(t(otu_table(ps_wolbachia_ovary_intestine)), method = "bray") ~Ind
 adonis(vegdist(t(otu_table(ps_wolbachia_ovary_intestine)), method = "bray") ~Location,
        data=as(sample_data(ps_wolbachia_ovary_intestine), "data.frame"), permutation = 9999)
 
-# Df SumsOfSqs  MeanSqs F.Model      R2 Pr(>F)
+#            Df SumsOfSqs  MeanSqs F.Model    R2  Pr(>F)
 # Location   2    0.0963 0.048154   0.472 0.01211 0.7976
 # Residuals 77    7.8556 0.102021         0.98789       
 # Total     79    7.9520                  1.00000 
