@@ -189,6 +189,26 @@ dev.off()
 
 # Culex pipiens - lab vs field
 ps_pipiens <- subset_samples(ps_decontam2, Species=="Culex pipiens" & Organ!="Salivary gland")
+ps_pipiens_wolbachia <- subset_taxa(ps_pipiens, Genus=="Wolbachia")
+ps_pipiens_wolbachia <- prune_samples(sample_sums(ps_pipiens_wolbachia) >= 1, ps_pipiens_wolbachia)
+ps_pipiens_wolbachia <- prune_taxa(taxa_sums(ps_pipiens_wolbachia) >= 1, ps_pipiens_wolbachia)
+
+taxa_sums(ps_pipiens_wolbachia)
+test3 <- as(tax_table(ps_pipiens),"matrix")
+test4 <- as(otu_table(ps_pipiens_wolbachia),"matrix")
+test5 <- as(sample_data(ps_pipiens_wolbachia),"matrix")
+
+
+ps_field <- subset_samples(ps_pipiens_wolbachia, Field=="Field")
+ps_field <- prune_taxa(taxa_sums(ps_field) >= 1, ps_field)
+ps_field <- prune_samples(sample_sums(ps_field) >= 1, ps_field)
+tax_field <- as(tax_table(ps_field),"matrix")
+
+ps_labo <- subset_samples(ps_pipiens_wolbachia, Field!="Field")
+ps_labo <- prune_taxa(taxa_sums(ps_labo) >= 1, ps_labo)
+ps_labo <- prune_samples(sample_sums(ps_labo) >= 1, ps_labo)
+tax_labo <- as(tax_table(ps_labo),"matrix")
+
 data4 <-  filter_taxa(ps_pipiens, 
                       function(x) sum(x >= 10) > (1), 
                       prune =  TRUE) 
@@ -200,6 +220,15 @@ p1 <- plot_richness(data4,
                     nrow = 1) +
   ggtitle("Alpha diversity")
 
+
+# Fonction calcul de l'indice de Pielou
+
+
+p <- (evenness(ps_decontam2, index = "all", zeroes = TRUE, detection = 0))
+plot(p)
+
+  
+ps1 <- as((ggplot_build(p1)), "matrix")
 
 pdf("richness_pipiens_organs.pdf")
 ggplot(p1$data,aes(Species,value,colour=Field)) +
@@ -671,27 +700,16 @@ dev.off()
 #--------------------------------------------------------------------------------------------#
 
 # phyloseq objects with the different conditions
-ps_percent <- subset_samples(ps_percent, Sample != "S175")
+#ps_percent <- subset_samples(ps_percent, Sample != "S175")
 
+
+# NMDS of entire organism
 
 full <- subset_samples(ps_percent, Organ == "Full" | Organ == "Pool")
 full_no_aedes <- subset_samples(full, Species!="Aedes aegypti")
 full_no_labo <- subset_samples(full_no_aedes, Location!="Labo Tetracycline" & Location!="Lavar")
 
-intestine <- subset_samples(ps_percent, Organ == "Intestine")
-intestine_camping <- subset_samples(ps_percent, Location == "Camping Europe" & Organ =="Intestine")
-intestine_camping_date <- subset_samples(intestine_camping, Date =="30/05/2017" | Date =="28/06/2017")
-intestine_no_lavar <- subset_samples(intestine, Location != "Lavar")
-intestine_filter <- subset_samples(intestine_camping_date, Sample !="NP17" & Sample !="NP20" & Sample !="S81" & Sample != "S82")
 
-ovary <- subset_samples(ps_percent, Organ == "Ovary")
-ovary_culex_camping <- subset_samples(ovary, Species=="Culex pipiens" & Location == "Camping Europe")
-ovary_culex_camping_date <- subset_samples(ovary_culex_camping, Date =="30/05/2017" | Date =="28/06/2017")
-ovary_filter <- subset_samples(ovary_culex_camping_date, Sample !="S103")
-
-
-
-# NMDS of entire organism
 prop.full <- transform_sample_counts(full, function(count_tab) count_tab/sum(count_tab))
 bray.full <- ordinate(full, method="NMDS", distance="bray")
 
@@ -704,7 +722,7 @@ bray.full_no_labo <- ordinate(full_no_labo, method="NMDS", distance="bray")
 
 pdf("NMDS_bray_full(without full vs pool).pdf")
 #jpeg("NMDS_bray_fullbody.jpg")
-plot_ordination(prop.full, bray.full, color="Species", title="Bray NMDS with full body", label="Sample") +
+plot_ordination(prop.full_no_labo, bray.full_no_labo, color="Species", title="Bray NMDS with full body", label="Sample") +
   labs(title = "Does species influence bacterial community structure ? ",
        caption = "Bray NMDS", x="NMDS1", y = "NMDS2")+
   geom_point(size = 4) +
@@ -773,6 +791,15 @@ dev.off()
 
 
 # NMDS of intestine
+
+intestine <- subset_samples(ps_percent, Organ == "Intestine")
+intestine_camping <- subset_samples(ps_percent, Location == "Camping Europe" & Organ =="Intestine")
+intestine_camping_date <- subset_samples(intestine_camping, Date =="30/05/2017" | Date =="28/06/2017")
+intestine_no_lavar <- subset_samples(intestine, Location != "Lavar")
+intestine_filter <- subset_samples(intestine_camping_date, Sample !="NP17" & Sample !="NP20" & Sample !="S81" & Sample != "S82")
+
+
+
 prop.intestine <- transform_sample_counts(intestine, function(count_tab) count_tab/sum(count_tab))
 bray.intestine <- ordinate(intestine, method="NMDS", distance="bray")
 
@@ -812,6 +839,13 @@ dev.off()
 
 
 # NMDS of ovary
+
+ovary <- subset_samples(ps_percent, Organ == "Ovary")
+ovary_culex_camping <- subset_samples(ovary, Species=="Culex pipiens" & Location == "Camping Europe")
+ovary_culex_camping_date <- subset_samples(ovary_culex_camping, Date =="30/05/2017" | Date =="28/06/2017")
+ovary_filter <- subset_samples(ovary_culex_camping_date, Sample !="S103")
+
+
 prop.ovary <- transform_sample_counts(ovary, function(count_tab) count_tab/sum(count_tab))
 bray.ovary <- ordinate(ovary, method="NMDS", distance="bray")
 
@@ -821,12 +855,12 @@ bray.ovary_culex_camping_date <- ordinate(ovary_culex_camping_date, method="NMDS
 prop.ovary_filter <- transform_sample_counts(ovary_filter, function(count_tab) count_tab/sum(count_tab))
 bray.ovary_filter <- ordinate(ovary_filter, method="NMDS", distance="bray")
 
-pdf("NMDS_bray_ovary.pdf")
-#jpeg("NMDS_bray_ovary.jpg")
-plot_ordination(prop.ovary, bray.ovary, color="Species", shape="Date", title="Bray NMDS with ovary", label="Sample") +
-  geom_point(size = 4) +
-  theme_gray()
-dev.off()
+# pdf("NMDS_bray_ovary.pdf")
+# #jpeg("NMDS_bray_ovary.jpg")
+# plot_ordination(prop.ovary, bray.ovary, color="Species", shape="Date", title="Bray NMDS with ovary", label="Sample") +
+#   geom_point(size = 4) +
+#   theme_gray()
+# dev.off()
 
 # S103 = outlier
 pdf("NMDS_bray_ovary_camping_culex_date.pdf")
@@ -837,14 +871,14 @@ plot_ordination(prop.ovary_culex_camping_date, bray.ovary_culex_camping_date, co
 dev.off()
 
 
-pdf("NMDS_bray_ovary_filter.pdf") 
-#jpeg("NMDS_bray_ovary.jpg") 
-plot_ordination(prop.ovary_filter, bray.ovary_filter, color="Date", title="Bray NMDS with ovary - Culex, Camping Europe, Dates", label="Sample") +
-  labs(title = expression(paste("Does date influence the microbiote of ", italic("Culex pipiens"),"?")),
-       caption = "Bray NMDS on ovary at Camping Europe", x="NMDS1", y = "NMDS2") +
-  geom_point(size = 4) +
-  theme_gray()
-dev.off()
+# pdf("NMDS_bray_ovary_filter.pdf") 
+# #jpeg("NMDS_bray_ovary.jpg") 
+# plot_ordination(prop.ovary_filter, bray.ovary_filter, color="Date", title="Bray NMDS with ovary - Culex, Camping Europe, Dates", label="Sample") +
+#   labs(title = expression(paste("Does date influence the microbiote of ", italic("Culex pipiens"),"?")),
+#        caption = "Bray NMDS on ovary at Camping Europe", x="NMDS1", y = "NMDS2") +
+#   geom_point(size = 4) +
+#   theme_gray()
+# dev.off()
 
 
 
@@ -868,14 +902,18 @@ bray.wolbachia_filter <- ordinate(ps_wolbachia_filter, method="NMDS", distance="
 
 pdf("NMDS_bray_wolbachia.pdf")
 #jpeg("NMDS_bray_ovary.jpg")
-plot_ordination(prop.wolbachia, bray.wolbachia, color="Individuals", shape="Organ", title="Bray NMDS - Wolbachia", label="Sample") +
+plot_ordination(prop.wolbachia, bray.wolbachia, color="Individual", shape="Organ", title="Bray NMDS - Wolbachia", label="Sample") +
   geom_point(size = 4) +
   theme_gray()
 dev.off() # outliers = S68 S175 S99
 
+# S175 = intestin, Culex pipiens, Camping Europe, individu 15
+# S68 = intestin, Culex pipiens, Camping Europe, individu J17
+# S99 = intestin, Culex pipiens, Camping Europe, individu GL10
+
 pdf("NMDS_bray_wolbachia_filter.pdf") # removing outliers 
 #jpeg("NMDS_bray_ovary.jpg")
-plot_ordination(prop.wolbachia_filter, bray.wolbachia_filter, color="Individuals", shape="Organ", title="Bray NMDS - Wolbachia filter", label="Individuals") +
+plot_ordination(prop.wolbachia_filter, bray.wolbachia_filter, color="Individual", shape="Organ", title="Bray NMDS - Wolbachia filter", label="Individuals") +
   labs(title = "Does structure of Wolbachia bacterial community depend on individual or organ?  ",
        caption = "Bray NMDS on Wolbachia", x="NMDS1", y = "NMDS2")+
   geom_point(size = 4) +
@@ -889,6 +927,41 @@ dev.off()
 #   theme_gray()
 # dev.off()
 
+
+
+
+
+# NMDS ovary, intestine, salivary gland of Culex pipiens from Cammping Europe 
+ps_new <- subset_samples(ps_percent, Organ!="Full" & Species=="Culex pipiens")
+ps_new <- subset_samples(ps_new, Sample!="S175")
+ps_new <- subset_samples(ps_new, Location=="Camping Europe")
+test <- as(sample_data(ps_new),"matrix")
+
+prop.new <- transform_sample_counts(ps_new, function(count_tab) count_tab/sum(count_tab))
+bray.new <- ordinate(ps_new, method="NMDS", distance="bray")
+
+plot_ordination(prop.new, bray.new, color="Organ", shape="Location", title="Bray NMDS", label="Sample") +
+  labs(title = expression(paste("Organ influences the structure of ", italic("Culex pipiens"), " bacterial community")),
+       caption = expression(paste("Bray NMDS on Ovary, Intestine and Salivary Gland of ", italic('Culex pipiens'), "from Camping Europe")), x="NMDS1", y = "NMDS2")+
+  geom_point(size = 4) +
+  theme_gray()
+
+
+
+
+# NMDS ovary, intestine, salivary gland of Culex quinquefasciatus 
+ps_new2 <- subset_samples(ps_percent, Organ!="Full")
+ps_new2 <- subset_samples(ps_new2, Species!="Culex pipiens")
+test2 <- as(sample_data(ps_new2),"matrix") # 16 samples
+
+prop.new2 <- transform_sample_counts(ps_new2, function(count_tab) count_tab/sum(count_tab))
+bray.new2 <- ordinate(ps_new2, method="NMDS", distance="bray")
+
+plot_ordination(prop.new2, bray.new2, color="Organ", shape="Species", title="Bray NMDS", label="Sample") +
+  labs(title = expression(paste("Does Organ influence the microbiote of ", italic("Culex quinquefasciatus"), " and ", italic("Aedes aegypti"), "?")),
+       caption = expression(paste("Bray NMDS on Ovary, Intestine and SG of ", italic('Culex quinque'), " and ", italic('Aedes aegypti'), "(Guadeloupe)")), x="NMDS1", y = "NMDS2")+
+  geom_point(size = 4) +
+  theme_gray()
 
 
 #--------------------------------------------------------------------------------------------#
