@@ -188,12 +188,25 @@ dev.off()
 
 
 # Culex pipiens - lab vs field
-ps_pipiens <- subset_samples(ps_decontam2, Species=="Culex pipiens" & Organ!="Salivary gland")
-ps_pipiens_wolbachia <- subset_taxa(ps_pipiens, Genus=="Wolbachia")
-ps_pipiens_wolbachia <- prune_samples(sample_sums(ps_pipiens_wolbachia) >= 1, ps_pipiens_wolbachia)
-ps_pipiens_wolbachia <- prune_taxa(taxa_sums(ps_pipiens_wolbachia) >= 1, ps_pipiens_wolbachia)
+ps_pipiens <- subset_samples(ps_percent, Species=="Culex pipiens" & Organ!="Salivary gland")
+ps_pipiens <- prune_taxa(taxa_sums(ps_pipiens) >= 1, ps_pipiens)
+ps_pipiens <- prune_samples(sample_sums(ps_pipiens) >= 1, ps_pipiens)
+# otu_table()   OTU Table:         [ 1066 taxa and 140 samples ]
+# sample_data() Sample Data:       [ 140 samples by 16 sample variables ]
+# tax_table()   Taxonomy Table:    [ 1066 taxa by 7 taxonomic ranks ]
+# phy_tree()    Phylogenetic Tree: [ 1066 tips and 1065 internal nodes ]
 
-taxa_sums(ps_pipiens_wolbachia)
+
+ps_pipiens_wolbachia <- subset_taxa(ps_pipiens, Genus=="Wolbachia")
+ps_pipiens_wolbachia <- prune_taxa(taxa_sums(ps_pipiens_wolbachia) >= 1, ps_pipiens_wolbachia)
+ps_pipiens_wolbachia <- prune_samples(sample_sums(ps_pipiens_wolbachia) >= 1, ps_pipiens_wolbachia)
+ps_pipiens_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_pipiens_wolbachia),TRUE)[1:30]), ps_pipiens_wolbachia)
+# otu_table()   OTU Table:         [ 108 taxa and 137 samples ]
+# sample_data() Sample Data:       [ 137 samples by 16 sample variables ]
+# tax_table()   Taxonomy Table:    [ 108 taxa by 7 taxonomic ranks ]
+# phy_tree()    Phylogenetic Tree: [ 108 tips and 107 internal nodes ]
+plot_heatmap(ps_pipiens_wolbachia, sample.label="Field", sample.order="Field", low="#000033", high="#FF3300")
+
 test3 <- as(tax_table(ps_pipiens),"matrix")
 test4 <- as(otu_table(ps_pipiens_wolbachia),"matrix")
 test5 <- as(sample_data(ps_pipiens_wolbachia),"matrix")
@@ -203,11 +216,24 @@ ps_field <- subset_samples(ps_pipiens_wolbachia, Field=="Field")
 ps_field <- prune_taxa(taxa_sums(ps_field) >= 1, ps_field)
 ps_field <- prune_samples(sample_sums(ps_field) >= 1, ps_field)
 tax_field <- as(tax_table(ps_field),"matrix")
+# otu_table()   OTU Table:         [ 98 taxa and 89 samples ]
+# sample_data() Sample Data:       [ 89 samples by 16 sample variables ]
+# tax_table()   Taxonomy Table:    [ 98 taxa by 7 taxonomic ranks ]
+# phy_tree()    Phylogenetic Tree: [ 98 tips and 97 internal nodes ]
 
-ps_labo <- subset_samples(ps_pipiens_wolbachia, Field!="Field")
+ps_labo <- subset_samples(ps_pipiens_wolbachia, Field=="Lab ")
 ps_labo <- prune_taxa(taxa_sums(ps_labo) >= 1, ps_labo)
 ps_labo <- prune_samples(sample_sums(ps_labo) >= 1, ps_labo)
 tax_labo <- as(tax_table(ps_labo),"matrix")
+# otu_table()   OTU Table:         [ 25 taxa and 48 samples ]
+# sample_data() Sample Data:       [ 48 samples by 16 sample variables ]
+# tax_table()   Taxonomy Table:    [ 25 taxa by 7 taxonomic ranks ]
+# phy_tree()    Phylogenetic Tree: [ 25 tips and 24 internal nodes ]
+
+
+
+
+
 
 data4 <-  filter_taxa(ps_pipiens, 
                       function(x) sum(x >= 10) > (1), 
@@ -690,7 +716,13 @@ plot_ordination(ps_percent, ordinate(ps_percent, method ="MDS", distance = "bray
 dev.off()
 
 
-
+# euclidean PCoA with deseq data 
+pdf("PCoA_deseq.pdf")
+plot_ordination(ps_deseq, ordinate(ps_percent, method ="MDS", distance = "euclidean"), color = "Species") +
+  geom_point(size = 4) +
+  ggtitle("Euclidean PCoA on all data (deseq normalization)") +
+  theme_gray()
+dev.off()
 
 
 
