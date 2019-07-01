@@ -185,54 +185,39 @@ ggplot(p1$data,aes(Organ,value,colour=Species,shape=Organ)) +
 dev.off()
 
 
+# Wolbachia vs no Wolbachia 
+ps_new <- subset_samples(ps_decontam2, Organ=="Full")
+ps_new <- subset_samples(ps_new, Organ!="Pool")
+
+data4 <-  filter_taxa(ps_new, 
+                      function(x) sum(x >= 10) > (1), 
+                      prune =  TRUE) 
+
+p1 <- plot_richness(data4, 
+                    x="Sample", 
+                    color="Location", 
+                    measures=c("Observed","Shannon", "Chao1"), 
+                    nrow = 1) +
+  ggtitle("Alpha diversity")
+
+
+ggplot(p1$data,aes(Species,value,colour=Location)) +
+  facet_grid(variable ~ Organ, drop=T,scale="free",space="fixed") +
+  geom_boxplot(outlier.colour = NA,alpha=0.8, 
+               position = position_dodge(width=0.9)) + 
+  geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
+  labs(title = expression(paste("A greater diversity in Guadeloupe and for samples without Wolbachia")),
+       caption = "Alpha diversity", y = "Diversity index")
 
 
 # Culex pipiens - lab vs field
 ps_pipiens <- subset_samples(ps_percent, Species=="Culex pipiens" & Organ!="Salivary gland")
-ps_pipiens <- prune_taxa(taxa_sums(ps_pipiens) >= 1, ps_pipiens)
-ps_pipiens <- prune_samples(sample_sums(ps_pipiens) >= 1, ps_pipiens)
+#ps_pipiens <- prune_taxa(taxa_sums(ps_pipiens) >= 1, ps_pipiens)
+#ps_pipiens <- prune_samples(sample_sums(ps_pipiens) >= 1, ps_pipiens)
 # otu_table()   OTU Table:         [ 1066 taxa and 140 samples ]
 # sample_data() Sample Data:       [ 140 samples by 16 sample variables ]
 # tax_table()   Taxonomy Table:    [ 1066 taxa by 7 taxonomic ranks ]
 # phy_tree()    Phylogenetic Tree: [ 1066 tips and 1065 internal nodes ]
-
-
-ps_pipiens_wolbachia <- subset_taxa(ps_pipiens, Genus=="Wolbachia")
-ps_pipiens_wolbachia <- prune_taxa(taxa_sums(ps_pipiens_wolbachia) >= 1, ps_pipiens_wolbachia)
-ps_pipiens_wolbachia <- prune_samples(sample_sums(ps_pipiens_wolbachia) >= 1, ps_pipiens_wolbachia)
-ps_pipiens_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_pipiens_wolbachia),TRUE)[1:30]), ps_pipiens_wolbachia)
-# otu_table()   OTU Table:         [ 108 taxa and 137 samples ]
-# sample_data() Sample Data:       [ 137 samples by 16 sample variables ]
-# tax_table()   Taxonomy Table:    [ 108 taxa by 7 taxonomic ranks ]
-# phy_tree()    Phylogenetic Tree: [ 108 tips and 107 internal nodes ]
-plot_heatmap(ps_pipiens_wolbachia, sample.label="Field", sample.order="Field", low="#000033", high="#FF3300")
-
-test3 <- as(tax_table(ps_pipiens),"matrix")
-test4 <- as(otu_table(ps_pipiens_wolbachia),"matrix")
-test5 <- as(sample_data(ps_pipiens_wolbachia),"matrix")
-
-
-ps_field <- subset_samples(ps_pipiens_wolbachia, Field=="Field")
-ps_field <- prune_taxa(taxa_sums(ps_field) >= 1, ps_field)
-ps_field <- prune_samples(sample_sums(ps_field) >= 1, ps_field)
-tax_field <- as(tax_table(ps_field),"matrix")
-# otu_table()   OTU Table:         [ 98 taxa and 89 samples ]
-# sample_data() Sample Data:       [ 89 samples by 16 sample variables ]
-# tax_table()   Taxonomy Table:    [ 98 taxa by 7 taxonomic ranks ]
-# phy_tree()    Phylogenetic Tree: [ 98 tips and 97 internal nodes ]
-
-ps_labo <- subset_samples(ps_pipiens_wolbachia, Field=="Lab ")
-ps_labo <- prune_taxa(taxa_sums(ps_labo) >= 1, ps_labo)
-ps_labo <- prune_samples(sample_sums(ps_labo) >= 1, ps_labo)
-tax_labo <- as(tax_table(ps_labo),"matrix")
-# otu_table()   OTU Table:         [ 25 taxa and 48 samples ]
-# sample_data() Sample Data:       [ 48 samples by 16 sample variables ]
-# tax_table()   Taxonomy Table:    [ 25 taxa by 7 taxonomic ranks ]
-# phy_tree()    Phylogenetic Tree: [ 25 tips and 24 internal nodes ]
-
-
-
-
 
 
 data4 <-  filter_taxa(ps_pipiens, 
@@ -295,6 +280,44 @@ dev.off()
 
 
 
+# Heatmap Wolbachia 
+
+ps_pipiens_wolbachia <- subset_taxa(ps_pipiens, Genus=="Wolbachia")
+ps_pipiens_wolbachia <- prune_taxa(taxa_sums(ps_pipiens_wolbachia) >= 1, ps_pipiens_wolbachia)
+ps_pipiens_wolbachia <- prune_samples(sample_sums(ps_pipiens_wolbachia) >= 1, ps_pipiens_wolbachia)
+ps_pipiens_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_pipiens_wolbachia),TRUE)[1:30]), ps_pipiens_wolbachia)
+
+# otu_table()   OTU Table:         [ 108 taxa and 137 samples ]
+# sample_data() Sample Data:       [ 137 samples by 16 sample variables ]
+# tax_table()   Taxonomy Table:    [ 108 taxa by 7 taxonomic ranks ]
+# phy_tree()    Phylogenetic Tree: [ 108 tips and 107 internal nodes ]
+plot_heatmap(ps_pipiens_wolbachia, sample.label="Field", sample.order="Field", low="#000033", high="#FF3300")+
+  labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Culex pipiens"))),
+       caption = expression(paste("Heatmap of  ", italic('Culex pipiens'), " that contains Wolbachia")), x="Field", y = "ASV")
+
+
+ps_field <- subset_samples(ps_pipiens_wolbachia, Field=="Field")
+ps_field <- prune_taxa(taxa_sums(ps_field) >= 1, ps_field)
+ps_field <- prune_samples(sample_sums(ps_field) >= 1, ps_field)
+tax_field <- as(tax_table(ps_field),"matrix")
+# otu_table()   OTU Table:         [ 98 taxa and 89 samples ]
+# sample_data() Sample Data:       [ 89 samples by 16 sample variables ]
+# tax_table()   Taxonomy Table:    [ 98 taxa by 7 taxonomic ranks ]
+# phy_tree()    Phylogenetic Tree: [ 98 tips and 97 internal nodes ]
+
+ps_labo <- subset_samples(ps_pipiens_wolbachia, Field=="Lab ")
+ps_labo <- prune_taxa(taxa_sums(ps_labo) >= 1, ps_labo)
+ps_labo <- prune_samples(sample_sums(ps_labo) >= 1, ps_labo)
+tax_labo <- as(tax_table(ps_labo),"matrix")
+# otu_table()   OTU Table:         [ 25 taxa and 48 samples ]
+# sample_data() Sample Data:       [ 48 samples by 16 sample variables ]
+# tax_table()   Taxonomy Table:    [ 25 taxa by 7 taxonomic ranks ]
+# phy_tree()    Phylogenetic Tree: [ 25 tips and 24 internal nodes ]
+
+
+test3 <- as(tax_table(ps_pipiens),"matrix")
+test4 <- as(otu_table(ps_pipiens_wolbachia),"matrix")
+test5 <- as(sample_data(ps_pipiens_wolbachia),"matrix")
 
 
 
@@ -740,6 +763,7 @@ dev.off()
 full <- subset_samples(ps_percent, Organ == "Full" | Organ == "Pool")
 full_no_aedes <- subset_samples(full, Species!="Aedes aegypti")
 full_no_labo <- subset_samples(full_no_aedes, Location!="Labo Tetracycline" & Location!="Lavar")
+full_pipiens <- subset_samples(full, Species=="Culex pipiens")
 
 
 prop.full <- transform_sample_counts(full, function(count_tab) count_tab/sum(count_tab))
@@ -750,6 +774,9 @@ bray.full_no_aedes <- ordinate(full_no_aedes, method="NMDS", distance="bray")
 
 prop.full_no_labo <- transform_sample_counts(full_no_labo, function(count_tab) count_tab/sum(count_tab))
 bray.full_no_labo <- ordinate(full_no_labo, method="NMDS", distance="bray")
+
+prop.pipiens <- transform_sample_counts(full_pipiens, function(count_tab) count_tab/sum(count_tab))
+bray.pipiens <- ordinate(full_pipiens, method="NMDS", distance="bray")
 
 
 pdf("NMDS_bray_full(without full vs pool).pdf")
@@ -786,6 +813,18 @@ plot_ordination(prop.full_no_aedes, bray.full_no_aedes, color="Field", shape="Lo
   theme_gray()
 dev.off()
 
+
+pdf("NMDS_bray_full(without aedes).pdf")
+#jpeg("NMDS_bray_fullbody.jpg")
+plot_ordination(prop.pipiens, bray.pipiens, color="Field", shape="Location", title="Bray NMDS with full body - Location without Aedes aegypti", label="Sample") +
+  labs(title = "Do antibiotics influence microbiote ? ",
+       caption = "Bray NMDS", x="NMDS1", y = "NMDS2") +
+  geom_point(size = 4) +
+  theme_gray()
+dev.off()
+
+
+
 pdf("NMDS_bray_full(without aedes)2.pdf")
 #jpeg("NMDS_bray_fullbody.jpg")
 plot_ordination(prop.full_no_aedes, bray.full_no_aedes, color="Field", shape="Species", title="Bray NMDS with full body - Location without Aedes aegypti", label="Sample") +
@@ -795,6 +834,16 @@ plot_ordination(prop.full_no_aedes, bray.full_no_aedes, color="Field", shape="Sp
   theme_gray()
 dev.off()
 
+pdf("NMDS_bray_full(pipiens).pdf")
+#jpeg("NMDS_bray_fullbody.jpg")
+plot_ordination(prop.pipiens, bray.pipiens, color="Field", shape="Location", title="Bray NMDS with full body - Location without Aedes aegypti", label="Sample") +
+  labs(title = expression(paste("Does laboratory influence microbiote of ", italic("Culex pipiens"), "?")),
+       caption = "Bray NMDS", x="NMDS1", y = "NMDS2") +
+  geom_point(size = 4) +
+  theme_gray()
+dev.off()
+
+  
 # pdf("NMDS_bray_full(without aedes and with field).pdf")
 # #jpeg("NMDS_bray_fullbody.jpg")
 # plot_ordination(prop.full_no_aedes, bray.full_no_aedes, color="Field", shape="Location", title="Bray NMDS with full body - Labo vs Field", label="Sample") +
