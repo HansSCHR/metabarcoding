@@ -12,8 +12,8 @@
 path = "D:/stage/data/runs_new2"
 setwd(path)
 
-dir.create("plotv5") # folder for plot
-path2 <- "D:/stage/data/runs_new2/plotv5"
+dir.create("new_02.07.2019") # folder for plot
+path2 <- "D:/stage/data/runs_new2/new_02.07.2019"
 
 
 #--------------------------------------------------------------------------------------------#
@@ -71,6 +71,10 @@ load("objects.Rdata")
 
 
 setwd(path2)
+
+
+
+
 #--------------------------------------------------------------------------------------------#
 #--------------------------------------DISTRIBUTION------------------------------------------#
 #--------------------------------------------------------------------------------------------#
@@ -95,7 +99,7 @@ p  <-  ggplot(readsumsdf3,
   geom_bar(stat = "identity")+
   theme_gray()
 
-pdf("distribution.pdf")
+pdf("1-distribution.pdf")
 p + ggtitle("Total number of reads before Preprocessing") + scale_y_log10() + facet_wrap(~type, 1, scales = "free")
 dev.off()
 
@@ -131,7 +135,7 @@ p2 <- p1 +
        caption = "Rarefaction curve",
        x = "Sample Size", y = "Species Richness")
 
-pdf("rarecurve_decontam2.pdf")
+pdf("2-rarecurve2_decontam2.pdf")
 plot(p2)
 dev.off()
 
@@ -141,48 +145,48 @@ dev.off()
 #-------------------------------------ALPHA DIVERSITY----------------------------------------#
 #--------------------------------------------------------------------------------------------#
 
-data1 <-  filter_taxa(ps_decontam2,
-                      function(x) sum(x >= 10) > (1),
-                      prune =  TRUE) 
-
-
-p1 <- plot_richness(data1, 
-                    x="Sample", 
-                    color="Species", 
-                    measures=c("Observed","Shannon", "Chao1"), 
-                    nrow = 1) +
-  ggtitle("Alpha diversity")
-# pdf("richness_ps_decontam2_species.pdf")
-# print(p1)
+# data1 <-  filter_taxa(ps_decontam2,
+#                       function(x) sum(x >= 10) > (1),
+#                       prune =  TRUE) 
+# 
+# 
+# p1 <- plot_richness(data1, 
+#                     x="Sample", 
+#                     color="Species", 
+#                     measures=c("Observed","Shannon", "Chao1"), 
+#                     nrow = 1) +
+#   ggtitle("Alpha diversity")
+# # pdf("richness_ps_decontam2_species.pdf")
+# # print(p1)
+# # dev.off()
+# 
+# p2 <- plot_richness(data1, 
+#                     x="Sample", 
+#                     color="Organ", 
+#                     measures=c("Observed","Shannon", "Chao1"), 
+#                     nrow = 1) +
+#   ggtitle("Alpha diversity")
+# 
+# 
+# pdf("richness_decontam2_species.pdf")
+# ggplot(p1$data,aes(Species,value,colour=Species,shape=Species)) +
+#   facet_grid(variable ~ Species, drop=T,scale="free",space="fixed") +
+#   geom_boxplot(outlier.colour = NA,alpha=0.8, 
+#                position = position_dodge(width=0.9)) + 
+#   geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
+#   labs(title = "A greater diversity in Guadeloupe",
+#        caption = "Alpha diversity", y = "Diversity index")
 # dev.off()
-
-p2 <- plot_richness(data1, 
-                    x="Sample", 
-                    color="Organ", 
-                    measures=c("Observed","Shannon", "Chao1"), 
-                    nrow = 1) +
-  ggtitle("Alpha diversity")
-
-
-pdf("richness_decontam2_species.pdf")
-ggplot(p1$data,aes(Species,value,colour=Species,shape=Species)) +
-  facet_grid(variable ~ Species, drop=T,scale="free",space="fixed") +
-  geom_boxplot(outlier.colour = NA,alpha=0.8, 
-               position = position_dodge(width=0.9)) + 
-  geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
-  labs(title = "A greater diversity in Guadeloupe",
-       caption = "Alpha diversity", y = "Diversity index")
-dev.off()
-
-pdf("richness_decontam2_organ.pdf")
-ggplot(p1$data,aes(Organ,value,colour=Species,shape=Organ)) +
-  facet_grid(variable ~ Organ, drop=T,scale="free",space="fixed") +
-  geom_boxplot(outlier.colour = NA,alpha=0.8, 
-               position = position_dodge(width=0.9)) + 
-  geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
-  labs(title = "A greater diversity in whole organisms",
-       caption = "Alpha diversity", y = "Diversity index")
-dev.off()
+# 
+# pdf("richness_decontam2_organ.pdf")
+# ggplot(p1$data,aes(Organ,value,colour=Species,shape=Organ)) +
+#   facet_grid(variable ~ Organ, drop=T,scale="free",space="fixed") +
+#   geom_boxplot(outlier.colour = NA,alpha=0.8, 
+#                position = position_dodge(width=0.9)) + 
+#   geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
+#   labs(title = "A greater diversity in whole organisms",
+#        caption = "Alpha diversity", y = "Diversity index")
+# dev.off()
 
 
 # Wolbachia vs no Wolbachia 
@@ -200,15 +204,15 @@ p1 <- plot_richness(data4,
                     nrow = 1) +
   ggtitle("Alpha diversity")
 
-
-ggplot(p1$data,aes(Species,value,colour=Location)) +
-  facet_grid(variable ~ Organ, drop=T,scale="free",space="fixed") +
+pdf("3-greater_div_aedes.pdf")
+ggplot(p1$data,aes(Organ,value,colour=Location)) +
+  facet_grid(variable ~ Species, drop=T,scale="free",space="fixed") +
   geom_boxplot(outlier.colour = NA,alpha=0.8, 
                position = position_dodge(width=0.9)) + 
   geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
-  labs(title = expression(paste("A greater diversity in Guadeloupe and for samples without Wolbachia")),
+  labs(title = expression(paste("A greater diversity for Aedes and lab samples")),
        caption = "Alpha diversity", y = "Diversity index")
-
+dev.off()
 
 # Culex pipiens - lab vs field
 ps_pipiens <- subset_samples(ps_percent, Species=="Culex pipiens" & Organ!="Salivary gland")
@@ -622,6 +626,7 @@ dev.off()
 
 
 
+
 p <- plot_composition(ps_proteo,
                       taxaRank1 = "Class",
                       taxaSet1 ="Alphaproteobacteria",
@@ -761,19 +766,21 @@ dev.off()
 # NMDS of entire organism
 
 full <- subset_samples(ps_percent, Organ == "Full" | Organ == "Pool")
-full_no_aedes <- subset_samples(full, Species!="Aedes aegypti")
-full_no_labo <- subset_samples(full_no_aedes, Location!="Labo Tetracycline" & Location!="Lavar")
+full_culex <- subset_samples(full, Species!="Aedes aegypti")
+full_culex_field <- subset_samples(full_culex, Location!="Labo Tetracycline" & Location!="Lavar")
 full_pipiens <- subset_samples(full, Species=="Culex pipiens")
+full_pipiens_field <- subset_samples(full_pipiens, Field=="Field")
+metadata_pipiens_full_field <- as(sample_data(full_pipiens_field),"matrix")
 
 
 prop.full <- transform_sample_counts(full, function(count_tab) count_tab/sum(count_tab))
 bray.full <- ordinate(full, method="NMDS", distance="bray")
 
-prop.full_no_aedes <- transform_sample_counts(full_no_aedes, function(count_tab) count_tab/sum(count_tab))
-bray.full_no_aedes <- ordinate(full_no_aedes, method="NMDS", distance="bray")
+prop.full_culex <- transform_sample_counts(full_culex, function(count_tab) count_tab/sum(count_tab))
+bray.full_culex <- ordinate(full_culex, method="NMDS", distance="bray")
 
-prop.full_no_labo <- transform_sample_counts(full_no_labo, function(count_tab) count_tab/sum(count_tab))
-bray.full_no_labo <- ordinate(full_no_labo, method="NMDS", distance="bray")
+prop.full_culex_field <- transform_sample_counts(full_culex_field, function(count_tab) count_tab/sum(count_tab))
+bray.full_culex_field <- ordinate(full_culex_field, method="NMDS", distance="bray")
 
 prop.pipiens <- transform_sample_counts(full_pipiens, function(count_tab) count_tab/sum(count_tab))
 bray.pipiens <- ordinate(full_pipiens, method="NMDS", distance="bray")
@@ -781,7 +788,7 @@ bray.pipiens <- ordinate(full_pipiens, method="NMDS", distance="bray")
 
 pdf("NMDS_bray_full(without full vs pool).pdf")
 #jpeg("NMDS_bray_fullbody.jpg")
-plot_ordination(prop.full_no_labo, bray.full_no_labo, color="Species", title="Bray NMDS with full body", label="Sample") +
+plot_ordination(prop.full_culex, bray.full_culex, color="Species", title="Bray NMDS with full body", label="Sample") +
   labs(title = "Does species influence bacterial community structure ? ",
        caption = "Bray NMDS", x="NMDS1", y = "NMDS2")+
   geom_point(size = 4) +
@@ -806,7 +813,7 @@ dev.off()
 
 pdf("NMDS_bray_full(without aedes).pdf")
 #jpeg("NMDS_bray_fullbody.jpg")
-plot_ordination(prop.full_no_aedes, bray.full_no_aedes, color="Field", shape="Location", title="Bray NMDS with full body - Location without Aedes aegypti", label="Sample") +
+plot_ordination(prop.full_culex, bray.full_culex, color="Field", shape="Location", title="Bray NMDS with full body - Location without Aedes aegypti", label="Sample") +
   labs(title = "Do antibiotics influence microbiote ? ",
        caption = "Bray NMDS", x="NMDS1", y = "NMDS2") +
   geom_point(size = 4) +
