@@ -325,6 +325,9 @@ bray.full_culex_field <- ordinate(full_culex_field, method="NMDS", distance="bra
 prop.pipiens <- transform_sample_counts(full_pipiens, function(count_tab) count_tab/sum(count_tab))
 bray.pipiens <- ordinate(full_pipiens, method="NMDS", distance="bray")
 
+prop.pipiens <- transform_sample_counts(full_pipiens, function(count_tab) count_tab/sum(count_tab))
+jacc.pipiens <- ordinate(full_pipiens, method="NMDS", distance="jaccard")
+
 
 pdf("7-NMDS_bray_full.pdf")
 plot_ordination(prop.full, bray.full, color="Species", title="Bray NMDS with full body", label="Sample") +
@@ -336,14 +339,51 @@ dev.off()
 
 pdf("8-NMDS_bray_full_culex.pdf")
 #jpeg("NMDS_bray_fullbody.jpg")
-plot_ordination(prop.full_culex, bray.full_culex,color="Field", shape="Species", title="Bray NMDS with full body - Location without Aedes aegypti", label="Sample") +
+plot_ordination(prop.full_culex, bray.full_culex, color="Field", shape="Location", title="Bray NMDS with full body - Location without Aedes aegypti", label="Sample") +
   labs(title = "Do antibiotics influence microbiote ? ",
        caption = "Bray NMDS on whole Culex mosquitoes", x="NMDS1", y = "NMDS2") +
+  #stat_ellipse(geom = "polygon", level=0.6,alpha = 1/2, aes(fill = Field))+
+  scale_fill_manual(values=c("yellow","green"))+
+  scale_color_manual(values=c("red", "blue"))+
+  geom_point(size = 5) +
+  theme_gray()
+dev.off()
+
+
+pdf("9-NMDS_bray_full_culex_ellipse.pdf")
+#jpeg("NMDS_bray_fullbody.jpg")
+  plot_ordination(prop.full_culex, bray.full_culex, color="Field", shape="Location", title="Bray NMDS with full body - Location without Aedes aegypti", label="Sample") +
+  labs(title = "Do antibiotics influence microbiote ? ",
+       caption = "Bray NMDS on whole Culex mosquitoes", x="NMDS1", y = "NMDS2") +
+  stat_ellipse(geom = "polygon", level=0.95,alpha = 1/2, aes(fill = Species))+
+  scale_fill_manual(values=c("yellow","green"))+
+  scale_color_manual(values=c("red", "blue"))+
+  geom_point(size = 5) +
+  theme_gray()
+dev.off()
+  
+  
+
+
+pdf("10-NMDS_bray_full_pipiens.pdf")
+#jpeg("NMDS_bray_fullbody.jpg")
+plot_ordination(prop.pipiens, bray.pipiens, color="Field", shape="Location", title="Bray NMDS with full body - Location without Aedes aegypti", label="Sample") +
+  labs(title = expression(paste("Does laboratory influence microbiote of ", italic("Culex pipiens"), "?")),
+       caption = "Bray NMDS", x="NMDS1", y = "NMDS2") +
   geom_point(size = 4) +
   theme_gray()
 dev.off()
 
 
+
+pdf("11-NMDS_jaccard_full_pipiens.pdf")
+#jpeg("NMDS_bray_fullbody.jpg")
+plot_ordination(prop.pipiens, jacc.pipiens, color="Field", shape="Location", title="Jaccard NMDS with full body - Location without Aedes aegypti", label="Sample") +
+  labs(title = expression(paste("Does laboratory influence microbiote of ", italic("Culex pipiens"), "?")),
+       caption = "Jaccard NMDS", x="NMDS1", y = "NMDS2") +
+  geom_point(size = 4) +
+  theme_gray()
+dev.off()
 
 
 # Organs of Culex pipiens from Cammping Europe 
@@ -359,16 +399,16 @@ prop.new2 <- transform_sample_counts(ps_new, function(count_tab) count_tab/sum(c
 bray.new2 <- ordinate(ps_new, method="NMDS", distance="jaccard")
 
 
-pdf("9-NMDS_bray_organs_culex_CE.pdf")
-plot_ordination(prop.new, bray.new, color="Organ", title="Bray NMDS", label="Sample") +
+pdf("11-NMDS_bray_organs_culex_CE.pdf")
+plot_ordination(prop.new, bray.new, color="Organ", shape="Date", title="Bray NMDS", label="Sample") +
   labs(title = expression(paste("Organ influences the structure of ", italic("Culex pipiens"), " bacterial community")),
        caption = expression(paste("Bray NMDS on Ovary, Intestine and Salivary Gland of ", italic('Culex pipiens'), " from Camping Europe")), x="NMDS1", y = "NMDS2")+
   geom_point(size = 4) +
   theme_gray()
 dev.off()
 
-pdf("10-NMDS_jaccard_organs_culex_CE.pdf")
-plot_ordination(prop.new2, bray.new2, color="Organ", title="Jaccard NMDS", label="Sample") +
+pdf("12-NMDS_jaccard_organs_culex_CE.pdf")
+plot_ordination(prop.new2, bray.new2, color="Organ", shape="Date", title="Jaccard NMDS", label="Sample") +
   labs(title = expression(paste("Organ influences the structure of ", italic("Culex pipiens"), " bacterial community")),
        caption = expression(paste("Jaccard NMDS on Ovary, Intestine and Salivary Gland of ", italic('Culex pipiens'), " from Camping Europe")), x="NMDS1", y = "NMDS2")+
   geom_point(size = 4) +
@@ -388,10 +428,10 @@ bray.intestine <- ordinate(intestine, method="NMDS", distance="bray")
 prop.intestine_camping_date <- transform_sample_counts(intestine_camping_date, function(count_tab) count_tab/sum(count_tab))
 bray.intestine_camping_date <- ordinate(intestine_camping_date, method="NMDS", distance="bray")
 
-pdf("11-NMDS_bray_intestine_CE_date.pdf")
+pdf("13-NMDS_bray_intestine_CE_date.pdf")
 #jpeg("NMDS_bray_intestine.jpg")
 plot_ordination(prop.intestine_camping_date, bray.intestine_camping_date, color="Date", title="Bray NMDS with intestine of Culex pipiens in Camping Europe", label="Sample")+
-  labs(title = expression(paste("Does date influence the microbiote of ", italic("Culex pipiens"),"?")),
+  labs(title = expression(paste("Does time of sampling influence the microbiote of ", italic("Culex pipiens"),"?")),
        caption = "Bray NMDS on intestine at Camping Europe", x="NMDS1", y = "NMDS2") +
   geom_point(size = 4) +
   theme_gray()
@@ -403,6 +443,7 @@ dev.off()
 ovary <- subset_samples(ps_percent, Organ == "Ovary")
 ovary_culex_camping <- subset_samples(ovary, Species=="Culex pipiens" & Location == "Camping Europe")
 ovary_culex_camping_date <- subset_samples(ovary_culex_camping, Date =="30/05/2017" | Date =="28/06/2017")
+ovary_culex_camping_date <- subset_samples(ovary_culex_camping_date, Sample!="S103")
 
 prop.ovary <- transform_sample_counts(ovary, function(count_tab) count_tab/sum(count_tab))
 bray.ovary <- ordinate(ovary, method="NMDS", distance="bray")
@@ -410,9 +451,11 @@ bray.ovary <- ordinate(ovary, method="NMDS", distance="bray")
 prop.ovary_culex_camping_date <- transform_sample_counts(ovary_culex_camping_date, function(count_tab) count_tab/sum(count_tab))
 bray.ovary_culex_camping_date <- ordinate(ovary_culex_camping_date, method="NMDS", distance="bray")
 
-pdf("12-NMDS_bray_ovary_CE_date.pdf")
+pdf("14-NMDS_bray_ovary_CE_date.pdf")
 #jpeg("NMDS_bray_ovary.jpg")
 plot_ordination(prop.ovary_culex_camping_date, bray.ovary_culex_camping_date, color="Date", title="Bray NMDS with ovary - Culex, Camping Europe, Dates", label="Sample") +
+  labs(title = expression(paste("Does time of sampling influence the microbiote of ", italic("Culex pipiens"),"?")),
+       caption = "Bray NMDS on intestine at Camping Europe", x="NMDS1", y = "NMDS2") +
   geom_point(size = 4) +
   theme_gray()
 dev.off()
@@ -420,23 +463,128 @@ dev.off()
 
 
 
+
+
+
+
 #--------------------------------------------------------------------------------------------#
-#-----------------------------------HEATMAP WOLBACHIA------------------------------------#
+#--------------------------------------------HEATMAP-----------------------------------------#
 #--------------------------------------------------------------------------------------------#
 
+# Culex pipiens
 ps_pipiens_wolbachia <- subset_taxa(ps_pipiens, Genus=="Wolbachia")
 ps_pipiens_wolbachia <- prune_taxa(taxa_sums(ps_pipiens_wolbachia) >= 1, ps_pipiens_wolbachia)
 ps_pipiens_wolbachia <- prune_samples(sample_sums(ps_pipiens_wolbachia) >= 1, ps_pipiens_wolbachia)
 ps_pipiens_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_pipiens_wolbachia),TRUE)[1:30]), ps_pipiens_wolbachia)
 
-# otu_table()   OTU Table:         [ 108 taxa and 137 samples ]
-# sample_data() Sample Data:       [ 137 samples by 16 sample variables ]
-# tax_table()   Taxonomy Table:    [ 108 taxa by 7 taxonomic ranks ]
-# phy_tree()    Phylogenetic Tree: [ 108 tips and 107 internal nodes ]
-
-plot_heatmap(ps_decontam2, sample.label="Field", sample.order="Field", low="#000033", high="#FF3300")+
+jpeg("15-heatmap_pipiens_wolbachia.jpg", width = 1080, height = 720)
+plot_heatmap(ps_pipiens_wolbachia, sample.label="Field", sample.order="Field", low="#000033", high="#FF3300")+
   labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Culex pipiens"))),
        caption = expression(paste("Heatmap of  ", italic('Culex pipiens'), " that contains Wolbachia")), x="Field", y = "ASV")
+dev.off()
+
+# Culex quinquefasciatus
+ps_quinque <- subset_samples(ps_decontam2, Species=="Culex quinquefasciatus")
+ps_quinque_wolbachia <- subset_taxa(ps_quinque, Genus=="Wolbachia")
+ps_quinque_wolbachia <- prune_taxa(taxa_sums(ps_quinque_wolbachia) >= 1, ps_quinque_wolbachia)
+ps_quinque_wolbachia <- prune_samples(sample_sums(ps_quinque_wolbachia) >= 1, ps_quinque_wolbachia)
+ps_quinque_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_quinque_wolbachia),TRUE)[1:30]), ps_quinque_wolbachia)
+
+jpeg("16-heatmap_quinque_wolbachia.jpg", width = 1080, height = 720)
+plot_heatmap(ps_quinque_wolbachia, sample.label="Field", sample.order="Field", low="#000033", high="#FF3300")+
+  labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Culex quinquefasciatus"))),
+       caption = expression(paste("Heatmap of  ", italic('Culex quinquefasciatus'), " that contains Wolbachia")), x="Field", y = "ASV")
+dev.off()
+
+
+# Aedes aegypti
+ps_aedes <- subset_samples(ps_decontam2, Species=="Aedes aegypti")
+ps_aedes_wolbachia <- subset_taxa(ps_aedes, Genus=="Wolbachia")
+ps_aedes_wolbachia <- prune_taxa(taxa_sums(ps_aedes_wolbachia) >= 1, ps_aedes_wolbachia)
+ps_aedes_wolbachia <- prune_samples(sample_sums(ps_aedes_wolbachia) >= 1, ps_aedes_wolbachia)
+ps_aedes_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_aedes_wolbachia),TRUE)[1:30]), ps_aedes_wolbachia)
+
+jpeg("17-heatmap_aedes_wolbachia.jpg", width = 1080, height = 720)
+plot_heatmap(ps_aedes_wolbachia, sample.label="Field", sample.order="Field", low="#000033", high="#FF3300")+
+  labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Aedes aegypti"))),
+       caption = expression(paste("Heatmap of  ", italic('Aedes aegypti'), " that contains Wolbachia")), x="Field", y = "ASV")
+dev.off()
+
+
+
+# Whole 
+ps_whole <- subset_samples(ps_decontam2, Organ=="Full")
+ps_whole_wolbachia <- subset_taxa(ps_whole, Genus=="Wolbachia")
+ps_whole_wolbachia <- prune_taxa(taxa_sums(ps_whole_wolbachia) >= 1, ps_whole_wolbachia)
+ps_whole_wolbachia <- prune_samples(sample_sums(ps_whole_wolbachia) >= 1, ps_whole_wolbachia)
+ps_whole_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_whole_wolbachia),TRUE)[1:30]), ps_whole_wolbachia)
+
+jpeg("18-heatmap_whole_wolbachia.jpg", width = 1080, height = 720)
+plot_heatmap(ps_whole_wolbachia, sample.label="Location", sample.order="Field", low="#000033", high="#FF3300")+
+  labs(title = expression(paste("ASV1 is abundant in almost all sequences of Whole mosquitoes")),
+       caption = expression(paste("Heatmap of Whole mosquitoes that contain Wolbachia")), x="Field", y = "ASV")
+dev.off()
+
+
+# Intestine
+ps_intestine <- subset_samples(ps_decontam2, Organ=="Intestine")
+ps_intestine_wolbachia <- subset_taxa(ps_intestine, Genus=="Wolbachia")
+ps_intestine_wolbachia <- prune_taxa(taxa_sums(ps_intestine_wolbachia) >= 1, ps_intestine_wolbachia)
+ps_intestine_wolbachia <- prune_samples(sample_sums(ps_intestine_wolbachia) >= 1, ps_intestine_wolbachia)
+ps_intestine_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_intestine_wolbachia),TRUE)[1:30]), ps_intestine_wolbachia)
+
+jpeg("19-heatmap_intestine_wolbachia.jpg", width = 1080, height = 720)
+plot_heatmap(ps_intestine_wolbachia, sample.label="Location", sample.order="Field", low="#000033", high="#FF3300")+
+  labs(title = expression(paste("ASV1 is abundant in almost all sequences of Intestine samples")),
+       caption = expression(paste("Heatmap of Intestine samples that contain Wolbachia")), x="Field", y = "ASV")
+dev.off()
+
+# Ovary 
+ps_ovary <- subset_samples(ps_decontam2, Organ=="Ovary")
+ps_ovary_wolbachia <- subset_taxa(ps_ovary, Genus=="Wolbachia")
+ps_ovary_wolbachia <- prune_taxa(taxa_sums(ps_ovary_wolbachia) >= 1, ps_ovary_wolbachia)
+ps_ovary_wolbachia <- prune_samples(sample_sums(ps_ovary_wolbachia) >= 1, ps_ovary_wolbachia)
+ps_ovary_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_ovary_wolbachia),TRUE)[1:30]), ps_ovary_wolbachia)
+
+jpeg("20-heatmap_ovary_wolbachia.jpg", width = 1080, height = 720)
+plot_heatmap(ps_ovary_wolbachia, sample.label="Location", sample.order="Field", low="#000033", high="#FF3300")+
+  labs(title = expression(paste("ASV1 is abundant in almost all sequences of Ovary samples")),
+       caption = expression(paste("Heatmap of Ovary samples that contain Wolbachia")), x="Field", y = "ASV")
+dev.off()
+
+# Salivary gland 
+ps_gland <- subset_samples(ps_decontam2, Organ=="Salivary gland")
+ps_gland_wolbachia <- subset_taxa(ps_gland, Genus=="Wolbachia")
+ps_gland_wolbachia <- prune_taxa(taxa_sums(ps_gland_wolbachia) >= 1, ps_gland_wolbachia)
+ps_gland_wolbachia <- prune_samples(sample_sums(ps_gland_wolbachia) >= 1, ps_gland_wolbachia)
+ps_gland_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_gland_wolbachia),TRUE)[1:30]), ps_gland_wolbachia)
+
+jpeg("21-heatmap_gland_wolbachia.jpg", width = 1080, height = 720)
+plot_heatmap(ps_gland_wolbachia, sample.label="Location", sample.order="Field", low="#000033", high="#FF3300")+
+  labs(title = expression(paste("ASV1 is abundant in almost all sequences of Salivary Gland samples")),
+       caption = expression(paste("Heatmap of Salivary Gland samples that contain Wolbachia")), x="Field", y = "ASV")
+dev.off()
+
+# Pool 
+ps_pool <- subset_samples(ps_decontam2, Organ=="Pool")
+ps_pool_wolbachia <- subset_taxa(ps_pool, Genus=="Wolbachia")
+ps_pool_wolbachia <- prune_taxa(taxa_sums(ps_pool_wolbachia) >= 1, ps_pool_wolbachia)
+ps_pool_wolbachia <- prune_samples(sample_sums(ps_pool_wolbachia) >= 1, ps_pool_wolbachia)
+ps_pool_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_pool_wolbachia),TRUE)[1:30]), ps_pool_wolbachia)
+
+jpeg("22-heatmap_pool_wolbachia.jpg", width = 1080, height = 720)
+plot_heatmap(ps_pool_wolbachia, sample.label="Location", sample.order="Field", low="#000033", high="#FF3300")+
+  labs(title = expression(paste("ASV1 is abundant in almost all sequences of Pool samples")),
+       caption = expression(paste("Heatmap of Pool samples that contain Wolbachia")), x="Field", y = "ASV")
+dev.off()
+
+
+
+
+
+#--------------------------------------------------------------------------------------------#
+#--------------------------------------WOLBACHIA STATS-------------------------------------#
+#--------------------------------------------------------------------------------------------#
 
 
 ps_field <- subset_samples(ps_pipiens_wolbachia, Field=="Field")
@@ -463,4 +611,35 @@ test4 <- as(otu_table(ps_pipiens_wolbachia),"matrix")
 test5 <- as(sample_data(ps_pipiens_wolbachia),"matrix")
 
 
+
+
+
+#--------------------------------------------------------------------------------------------#
+#-------------------------------------------ADONIS-------------------------------------------#
+#--------------------------------------------------------------------------------------------#
+
+# Culex whole 
+ps_culex_whole <- subset_samples(ps_percent, Organ=="Full" & Species!="Aedes aegypti")
+adonis(vegdist(t(otu_table(ps_culex_whole)), method = "bray") ~ Location*Species,
+       data=as(sample_data(ps_culex_whole), "data.frame"), permutation = 9999)
+
+# Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+# Location   4    8.4039 2.10098  11.316 0.42199  1e-04 ***
+#   Residuals 62   11.5110 0.18566         0.57801           
+# Total     66   19.9149                 1.00000           
+# ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+
+
+
+
+#--------------------------------------------------------------------------------------------#
+#---------------------------------------SAVE SESSION-----------------------------------------#
+#--------------------------------------------------------------------------------------------#
+
+#install.packages("session", repos = "http://cran.us.r-project.org")
+library(session); packageVersion("session")
+save.session("plot3.Rda")
+#load("phyloseq.Rda")
 
