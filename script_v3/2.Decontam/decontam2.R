@@ -50,7 +50,7 @@ theme_set(theme_gray()) #set ggplot2 graphic theme
 setwd(path)
 asv_tab <- read.csv("seqtabnochimcor.csv", sep=";", dec=",")
 asv_tax <- read.csv("taxafinal.csv", sep=";", dec=",")
-metadata <- read.csv("metadata_runs_update_11_06_19_2.csv", sep=",", row.names = 1)
+metadata <- read.csv("metadata_runs_update_02_07_19.csv", sep=",", row.names = 1)
 load("tree.Rdata")
 
 
