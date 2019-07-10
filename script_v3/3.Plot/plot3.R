@@ -152,6 +152,56 @@ dev.off()
 ps_new <- subset_samples(ps_decontam2, Organ=="Full")
 ps_new <- subset_samples(ps_new, Organ!="Pool")
 
+ps_new_aedes <- subset_samples(ps_new, Species=="Aedes aegypti")
+ps_new_aedes_wolbachia <- subset_taxa(ps_new_aedes, Genus=="Wolbachia")
+ps_new_aedes_wolbachia <- prune_taxa(taxa_sums(ps_new_aedes_wolbachia) >= 1, ps_new_aedes_wolbachia)
+ps_new_aedes_wolbachia <- prune_samples(sample_sums(ps_new_aedes_wolbachia) >= 1, ps_new_aedes_wolbachia)
+ps_new_aedes_wolbachia
+
+otu_new_aedes_wolbachia <- as(otu_table(ps_new_aedes_wolbachia),"matrix")
+metadata_new_aedes_wolbachia <-as(sample_data(ps_new_aedes_wolbachia),"matrix")
+sum(otu_new_aedes_wolbachia)/7
+
+ps_new_pipiens_bosc <- subset_samples(ps_new, Species=="Culex pipiens" & Location=="Bosc")
+ps_new_pipiens_bosc_wolbachia <- subset_taxa(ps_new_pipiens_bosc, Genus=="Wolbachia")
+ps_new_pipiens_bosc_wolbachia <- prune_taxa(taxa_sums(ps_new_pipiens_bosc_wolbachia) >= 1, ps_new_pipiens_bosc_wolbachia)
+ps_new_pipiens_bosc_wolbachia <- prune_samples(sample_sums(ps_new_pipiens_bosc_wolbachia) >= 1, ps_new_pipiens_bosc_wolbachia)
+ps_new_pipiens_bosc_wolbachia
+otu_new_pipiens_bosc_wolbachia <- as(otu_table(ps_new_pipiens_bosc_wolbachia),"matrix")
+sum(otu_new_pipiens_bosc_wolbachia)/15
+
+ps_new_pipiens_CE <- subset_samples(ps_new, Species=="Culex pipiens" & Location=="Camping Europe")
+ps_new_pipiens_CE_wolbachia <- subset_taxa(ps_new_pipiens_CE, Genus=="Wolbachia")
+ps_new_pipiens_CE_wolbachia <- prune_taxa(taxa_sums(ps_new_pipiens_CE_wolbachia) >= 1, ps_new_pipiens_CE_wolbachia)
+ps_new_pipiens_CE_wolbachia <- prune_samples(sample_sums(ps_new_pipiens_CE_wolbachia) >= 1, ps_new_pipiens_CE_wolbachia)
+ps_new_pipiens_CE_wolbachia
+otu_new_pipiens_CE_wolbachia <- as(otu_table(ps_new_pipiens_CE_wolbachia),"matrix")
+sum(otu_new_pipiens_CE_wolbachia)/7
+
+ps_new_pipiens_lavar <- subset_samples(ps_new, Species=="Culex pipiens" & Location=="Lavar (labo)")
+ps_new_pipiens_lavar_wolbachia <- subset_taxa(ps_new_pipiens_lavar, Genus=="Wolbachia")
+ps_new_pipiens_lavar_wolbachia <- prune_taxa(taxa_sums(ps_new_pipiens_lavar_wolbachia) >= 1, ps_new_pipiens_lavar_wolbachia)
+ps_new_pipiens_lavar_wolbachia <- prune_samples(sample_sums(ps_new_pipiens_lavar_wolbachia) >= 1, ps_new_pipiens_lavar_wolbachia)
+ps_new_pipiens_lavar_wolbachia
+otu_new_pipiens_lavar_wolbachia <- as(otu_table(ps_new_pipiens_lavar_wolbachia),"matrix")
+sum(otu_new_pipiens_lavar_wolbachia)/22
+
+ps_new_quinque_guada <- subset_samples(ps_new, Species=="Culex quinquefasciatus" & Location=="Guadeloupe")
+ps_new_quinque_guada_wolbachia <- subset_taxa(ps_new_quinque_guada, Genus=="Wolbachia")
+ps_new_quinque_guada_wolbachia <- prune_taxa(taxa_sums(ps_new_quinque_guada_wolbachia) >= 1, ps_new_quinque_guada_wolbachia)
+ps_new_quinque_guada_wolbachia <- prune_samples(sample_sums(ps_new_quinque_guada_wolbachia) >= 1, ps_new_quinque_guada_wolbachia)
+ps_new_quinque_guada_wolbachia
+otu_new_quinque_guada_wolbachia <- as(otu_table(ps_new_quinque_guada_wolbachia),"matrix")
+sum(otu_new_quinque_guada_wolbachia)/7
+
+ps_new_quinque_TC <- subset_samples(ps_new, Species=="Culex quinquefasciatus" & Location=="Wolbachia -")
+ps_new_quinque_TC_wolbachia <- subset_taxa(ps_new_quinque_TC, Genus=="Wolbachia")
+ps_new_quinque_TC_wolbachia <- prune_taxa(taxa_sums(ps_new_quinque_TC_wolbachia) >= 1, ps_new_quinque_TC_wolbachia)
+ps_new_quinque_TC_wolbachia <- prune_samples(sample_sums(ps_new_quinque_TC_wolbachia) >= 1, ps_new_quinque_TC_wolbachia)
+ps_new_quinque_TC_wolbachia
+otu_new_quinque_TC_wolbachia <- as(otu_table(ps_new_quinque_TC_wolbachia),"matrix")
+sum(otu_new_quinque_TC_wolbachia)/13
+
 data4 <-  filter_taxa(ps_new, 
                       function(x) sum(x >= 10) > (1), 
                       prune =  TRUE) 
@@ -180,6 +230,13 @@ dev.off()
 # Stats : how many Wolbachia in Culex and how many Wolbachia - ?
 ps_decontam2 # 2031 taxa and 193 samples
 sum(as(otu_table(ps_decontam2),"matrix")) # 26 289 866 counts
+sum(as(otu_table(ps_decontam2),"matrix"))/193 # 136 216
+reads_by_sample <- as(colSums(as(otu_table(ps_decontam2),"matrix")), "matrix")
+sqrt(mean(as(otu_table(ps_decontam2),"matrix")^2)-mean(as(otu_table(ps_decontam2),"matrix"))^2)
+min(colSums(as(otu_table(ps_decontam2),"matrix"))) #10
+max(colSums(as(otu_table(ps_decontam2),"matrix"))) # 1 390 286
+sd(colSums(as(otu_table(ps_decontam2),"matrix"))) # 266 929
+mean(colSums(as(otu_table(ps_decontam2),"matrix"))) # 136 216
 
 ps_culex <- subset_samples(ps_decontam2, Species!="Aedes aegypti")
 ps_culex <- prune_taxa(taxa_sums(ps_culex) >= 1, ps_culex)
@@ -192,6 +249,83 @@ ps_culex_wolbachia <- prune_taxa(taxa_sums(ps_culex_wolbachia) >= 1, ps_culex_wo
 ps_culex_wolbachia <- prune_samples(sample_sums(ps_culex_wolbachia) >= 1, ps_culex_wolbachia)
 ps_culex_wolbachia # 198 taxa and 171 samples --> 14,2% of ASV are Wolbachia 
 sum(as(otu_table(ps_culex_wolbachia),"matrix")) # 12 566 880 counts --> 63,4% of counts are Wolbachia within Culex 
+
+
+
+ps_pipiens <- subset_samples(ps_decontam2, Species=="Culex pipiens")
+ps_pipiens <- prune_taxa(taxa_sums(ps_pipiens) >= 1, ps_pipiens)
+ps_pipiens <- prune_samples(sample_sums(ps_pipiens) >= 1, ps_pipiens)
+ps_pipiens # 1115 taxa and 142 samples --> 54,9% of ASV are in Culex
+sum(as(otu_table(ps_pipiens),"matrix")) # 8 271 948 reads --> 31,5% of reads are in Culex
+sum(as(otu_table(ps_pipiens),"matrix"))/142 # 58 253 reads by sample
+
+min(colSums(as(otu_table(ps_pipiens),"matrix"))) # 12
+max(colSums(as(otu_table(ps_pipiens),"matrix"))) # 873 478
+mean(colSums(as(otu_table(ps_pipiens),"matrix"))) # 58 253
+sd(colSums(as(otu_table(ps_pipiens),"matrix"))) # 85 417
+
+ps_pipiens_wolbachia <- subset_taxa(ps_pipiens, Genus=="Wolbachia")
+ps_pipiens_wolbachia <- prune_taxa(taxa_sums(ps_pipiens_wolbachia) >= 1, ps_pipiens_wolbachia)
+ps_pipiens_wolbachia <- prune_samples(sample_sums(ps_pipiens_wolbachia) >= 1, ps_pipiens_wolbachia)
+ps_pipiens_wolbachia # 109 taxa and 139 samples --> 5,37% of ASV are Wolbachia 
+sum(as(otu_table(ps_pipiens_wolbachia),"matrix")) # 6 956 089 reads --> 26,46% of reads are Wolbachia within Culex 
+sum(as(otu_table(ps_pipiens_wolbachia),"matrix"))/139 # 50 0043 reads of Wolbachia by sample
+
+min(colSums(as(otu_table(ps_pipiens_wolbachia),"matrix"))) # 7
+max(colSums(as(otu_table(ps_pipiens_wolbachia),"matrix"))) # 873 369
+mean(colSums(as(otu_table(ps_pipiens_wolbachia),"matrix"))) # 50 043
+sd(colSums(as(otu_table(ps_pipiens_wolbachia),"matrix"))) # 87 826
+
+
+ps_quinque <- subset_samples(ps_decontam2, Species=="Culex quinquefasciatus")
+ps_quinque <- prune_taxa(taxa_sums(ps_quinque) >= 1, ps_quinque)
+ps_quinque <- prune_samples(sample_sums(ps_quinque) >= 1, ps_quinque)
+ps_quinque # 388 taxa and 35 samples --> 19,1% of ASV are in Culex
+sum(as(otu_table(ps_quinque),"matrix")) # 11 539 650 reads --> 43,9% of reads are in Culex
+sum(as(otu_table(ps_quinque),"matrix"))/35 
+
+min(colSums(as(otu_table(ps_quinque),"matrix"))) # 10
+max(colSums(as(otu_table(ps_quinque),"matrix"))) # 1 390 286
+mean(colSums(as(otu_table(ps_quinque),"matrix"))) # 329 704
+sd(colSums(as(otu_table(ps_quinque),"matrix"))) # 440 686
+
+
+ps_quinque_wolbachia <- subset_taxa(ps_quinque, Genus=="Wolbachia")
+ps_quinque_wolbachia <- prune_taxa(taxa_sums(ps_quinque_wolbachia) >= 1, ps_quinque_wolbachia)
+ps_quinque_wolbachia <- prune_samples(sample_sums(ps_quinque_wolbachia) >= 1, ps_quinque_wolbachia)
+ps_quinque_wolbachia # 117 taxa and 32 samples --> 5,8% of ASV are Wolbachia 
+sum(as(otu_table(ps_quinque_wolbachia),"matrix")) # 5 610 791 reads --> 21,3% of reads are Wolbachia within Culex
+
+
+min(colSums(as(otu_table(ps_quinque_wolbachia),"matrix"))) # 5
+max(colSums(as(otu_table(ps_quinque_wolbachia),"matrix"))) # 1 389 118
+mean(colSums(as(otu_table(ps_quinque_wolbachia),"matrix"))) # 175 337
+sd(colSums(as(otu_table(ps_quinque_wolbachia),"matrix"))) # 421 858
+
+
+ps_aedes <- subset_samples(ps_decontam2, Species=="Aedes aegypti")
+ps_aedes <- prune_taxa(taxa_sums(ps_aedes) >= 1, ps_aedes)
+ps_aedes <- prune_samples(sample_sums(ps_aedes) >= 1, ps_aedes)
+ps_aedes # 744 taxa and 16 samples -->  36,6% of ASV are in Aedes aegypti
+sum(as(otu_table(ps_aedes),"matrix")) # 6 478 268 reads --> 24,6% of reads are in Culex
+
+min(colSums(as(otu_table(ps_aedes),"matrix"))) # 130
+max(colSums(as(otu_table(ps_aedes),"matrix"))) # 976 860
+mean(colSums(as(otu_table(ps_aedes),"matrix"))) # 404 891
+sd(colSums(as(otu_table(ps_aedes),"matrix"))) # 425 845
+
+ps_aedes_wolbachia <- subset_taxa(ps_aedes, Genus=="Wolbachia")
+ps_aedes_wolbachia <- prune_taxa(taxa_sums(ps_aedes_wolbachia) >= 1, ps_aedes_wolbachia)
+ps_aedes_wolbachia <- prune_samples(sample_sums(ps_aedes_wolbachia) >= 1, ps_aedes_wolbachia)
+ps_aedes_wolbachia # 10 taxa and 11 samples --> 0,49% of ASV are Wolbachia 
+sum(as(otu_table(ps_aedes_wolbachia),"matrix")) # 48 059 counts --> 0,18% of counts are Wolbachia within Culex 
+
+min(colSums(as(otu_table(ps_aedes_wolbachia),"matrix"))) # 107
+max(colSums(as(otu_table(ps_aedes_wolbachia),"matrix"))) # 24 561
+mean(colSums(as(otu_table(ps_aedes_wolbachia),"matrix"))) # 4369
+sd(colSums(as(otu_table(ps_aedes_wolbachia),"matrix"))) # 7613
+
+
 
 
 ps_wolbachia_neg <- subset_samples(ps_decontam2, Location=="Wolbachia -")
@@ -390,7 +524,7 @@ dev.off()
 ps_new <- subset_samples(ps_percent, Organ!="Full" & Species=="Culex pipiens")
 ps_new <- subset_samples(ps_new, Sample!="S175")
 ps_new <- subset_samples(ps_new, Location=="Camping Europe")
-test <- as(sample_data(ps_new),"matrix")
+test0 <- as(sample_data(ps_new),"matrix")
 
 prop.new <- transform_sample_counts(ps_new, function(count_tab) count_tab/sum(count_tab))
 bray.new <- ordinate(ps_new, method="NMDS", distance="bray")
@@ -489,6 +623,11 @@ ps_quinque_wolbachia <- subset_taxa(ps_quinque, Genus=="Wolbachia")
 ps_quinque_wolbachia <- prune_taxa(taxa_sums(ps_quinque_wolbachia) >= 1, ps_quinque_wolbachia)
 ps_quinque_wolbachia <- prune_samples(sample_sums(ps_quinque_wolbachia) >= 1, ps_quinque_wolbachia)
 ps_quinque_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_quinque_wolbachia),TRUE)[1:30]), ps_quinque_wolbachia)
+otu_quinque_wolbachia <- as(otu_table(ps_quinque_wolbachia),"matrix")
+metadata_quinque_wolbachia <- as(sample_data(ps_quinque_wolbachia),"matrix")
+
+ps_quinque_wolbachia_lab <- subset_samples(ps_quinque_wolbachia, Field=="Lab ")
+tax_quinque_wolbachia_lab <- as(tax_table(ps_quinque_wolbachia_lab), "matrix")
 
 jpeg("16-heatmap_quinque_wolbachia.jpg", width = 1080, height = 720)
 plot_heatmap(ps_quinque_wolbachia, sample.label="Field", sample.order="Field", low="#000033", high="#FF3300")+
