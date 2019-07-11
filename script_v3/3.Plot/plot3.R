@@ -229,6 +229,9 @@ dev.off()
 
 # Stats : how many Wolbachia in Culex and how many Wolbachia - ?
 ps_decontam2 # 2031 taxa and 193 samples
+ps_decontam2 <- prune_taxa(taxa_sums(ps_decontam2) >= 1, ps_decontam2)
+ps_decontam2 <- prune_samples(sample_sums(ps_decontam2) >= 1, ps_decontam2)
+
 sum(as(otu_table(ps_decontam2),"matrix")) # 26 289 866 counts
 sum(as(otu_table(ps_decontam2),"matrix"))/193 # 136 216
 reads_by_sample <- as(colSums(as(otu_table(ps_decontam2),"matrix")), "matrix")

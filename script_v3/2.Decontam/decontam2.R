@@ -26,6 +26,8 @@ dir.create("3.decontam2")
 path_decontam2 <- "D:/stage/data/runs_new2/decontam/script/3.decontam2"
 
 
+
+
 #--------------------------------------------------------------------------------------------#
 #-------------------------------------LOAD PACKAGES------------------------------------------#
 #--------------------------------------------------------------------------------------------#
@@ -89,6 +91,9 @@ table_asv_sequence <- cbind(asv_tax_standard[,0], rownames(asv_tax))
 colnames(table_asv_sequence) <- c("Sequence")
 write(table_asv_sequence, "ASVs_name_sequence.fa")
 
+
+
+
 #--------------------------------------------------------------------------------------------#
 #------------------------------------PHYLOSEQ OBJECT-----------------------------------------#
 #--------------------------------------------------------------------------------------------#
@@ -99,10 +104,12 @@ TAX_std = tax_table(as.matrix(asv_tax_standard))
 SAM = sample_data(metadata)
 
 ps_std <- phyloseq(OTU_std, TAX_std, SAM)
-ps_std <- subset_samples(ps_std, Species!="CuT" & Species!="CuP" & Species!="CuN" & Species!="CuG") # remove cullicoides
-ps_std <- subset_samples(ps_std, Sample!="NP16" & Sample!="NP17" & Sample!="NP18" & Sample!="NP19" & Sample!="S69" & Sample!="S70" & Sample!="S81" & Sample!="S82" & Sample!="NP20" & Sample!="NP21")
-#ps <- subset_samples(ps, Organ!="Pool")
+ps_std1 <- subset_samples(ps_std, Species!="CuT" & Species!="CuP" & Species!="CuN" & Species!="CuG") # remove cullicoides	
 
+asv_tab_std0 <- as(otu_table(ps_std1),"matrix")
+write.table(asv_tab_std0, "0.asv_tab_standard0.tsv", sep="\t", quote=F, col.names=NA)
+
+ps_std <- subset_samples(ps_std1, Sample!="NP16" & Sample!="NP17" & Sample!="NP18" & Sample!="NP19" & Sample!="S69" & Sample!="S70" & Sample!="S81" & Sample!="S82" & Sample!="NP20" & Sample!="NP21") # 11 juin 2019
 ps_std <- prune_taxa(taxa_sums(ps_std) >= 1, ps_std) # remove asv that are not present in samples 
 ps_std <- prune_samples(sample_sums(ps_std) >= 1, ps_std) # remove sample with 0 read
 
@@ -118,7 +125,7 @@ ps <- subset_samples(ps, Sample!="NP16" & Sample!="NP17" & Sample!="NP18" & Samp
 ps <- prune_taxa(taxa_sums(ps) >= 1, ps) # remove asv that are not present in samples
 ps <- prune_samples(sample_sums(ps) >= 1, ps) # remove counts = 0
 
-
+write.table(asv_tab_standard, "1.asv_tab_standard.tsv", sep="\t", quote=F, col.names=NA)
 
 
 #--------------------------------------------------------------------------------------------#
@@ -203,7 +210,7 @@ asv_fasta_prev01 <- asv_fasta[- dont_want]
 
 # write tables
 write.table(asv_tab_prev01, "asv_tab_prev01.tsv", sep="\t", quote=F, col.names=NA)
-write.table(asv_tab_prev01_std, "asv_tab_prev01_std.tsv", sep="\t", quote=F, col.names=NA)
+write.table(asv_tab_prev01_std, "2.asv_tab_prev01_std.tsv", sep="\t", quote=F, col.names=NA)
 
 write.table(asv_tax_prev01, "asv_tax_prev01.tsv", sep="\t", quote=F, col.names=NA)
 write.table(asv_tax_prev01_std, "asv_tax_prev01_std.tsv", sep="\t", quote=F, col.names=NA)
@@ -247,7 +254,9 @@ ps_decontam2 <- subset_taxa(ps_decontam, Family!="Mitochondria" & Order!="Chloro
 ps_decontam2 <- prune_samples(sample_sums(ps_decontam2) >= 1, ps_decontam2)
 ps_decontam2 <- prune_taxa(taxa_sums(ps_decontam2) >= 1, ps_decontam2)
 
-tax_decontam2 <- as(otu_table(ps_decontam2),"matrix")
+asv_decontam2 <- as(otu_table(ps_decontam2),"matrix")
+
+write.table(asv_decontam2, "3.asv_decontam2.tsv",sep="\t", quote=F, col.names=NA)
 
 mitochondria <- subset_taxa(ps_decontam, Family=="Mitochondria") # 1 mitochondria 
 chloroplast <- subset_taxa(ps_decontam, Order=="Chloroplast") # 26 chloroplast 
@@ -262,6 +271,8 @@ tax_chloroplast <- as(tax_table(chloroplast),"matrix")
 
 # % 
 ps_percent <- transform_sample_counts( ps_decontam2, function(x) x/sum(x)*100 )
+asv_percent <- as(otu_table(ps_percent),"matrix")
+write.table(asv_percent, "4.asv_percent.tsv", sep="\t", quote=F, col.names=NA)
 
 
 # deseq 
@@ -273,9 +284,11 @@ metadata_deseq <- as(sample_data(ps_deseq),"matrix")
 deseq_counts <- DESeqDataSetFromMatrix(otu_deseq, colData = metadata_deseq, design = ~Dna)
 deseq_counts_vst <- varianceStabilizingTransformation(deseq_counts)
 
-new_otu_deseq <- as.matrix(assay(deseq_counts_vst))
+asv_deseq <- as.matrix(assay(deseq_counts_vst))
 
-otu_table(ps_deseq) <- otu_table(new_otu_deseq, taxa_are_rows = TRUE)
+write.table(asv_deseq, "5.asv_deseq.tsv", sep="\t", quote=F, col.names=NA)
+
+otu_table(ps_deseq) <- otu_table(asv_deseq, taxa_are_rows = TRUE)
 
 ps_deseq
 
