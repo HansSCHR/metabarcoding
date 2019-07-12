@@ -628,9 +628,21 @@ ps_quinque_wolbachia <- prune_samples(sample_sums(ps_quinque_wolbachia) >= 1, ps
 ps_quinque_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_quinque_wolbachia),TRUE)[1:30]), ps_quinque_wolbachia)
 otu_quinque_wolbachia <- as(otu_table(ps_quinque_wolbachia),"matrix")
 metadata_quinque_wolbachia <- as(sample_data(ps_quinque_wolbachia),"matrix")
+ps_quinque_wolbachia # 30 taxa / 32 samples
+sum(as(otu_table(ps_quinque_wolbachia),"matrix")) # 5 406 449
 
 ps_quinque_wolbachia_lab <- subset_samples(ps_quinque_wolbachia, Field=="Lab ")
 tax_quinque_wolbachia_lab <- as(tax_table(ps_quinque_wolbachia_lab), "matrix")
+ps_quinque_wolbachia_lab <- prune_taxa(taxa_sums(ps_quinque_wolbachia_lab) >= 1, ps_quinque_wolbachia_lab)
+ps_quinque_wolbachia_lab <- prune_samples(sample_sums(ps_quinque_wolbachia_lab) >= 1, ps_quinque_wolbachia_lab)
+ps_quinque_wolbachia_lab # 4 taxa / 13 samples
+sum(as(otu_table(ps_quinque_wolbachia_lab),"matrix")) # 9 265 -> 0,17% of total reads
+
+ps_quinque_wolbachia_field <- subset_samples(ps_quinque_wolbachia, Field=="Field")
+ps_quinque_wolbachia_field <- prune_taxa(taxa_sums(ps_quinque_wolbachia_field) >= 1, ps_quinque_wolbachia_field)
+ps_quinque_wolbachia_field <- prune_samples(sample_sums(ps_quinque_wolbachia_field) >= 1, ps_quinque_wolbachia_field)
+sum(as(otu_table(ps_quinque_wolbachia_field),"matrix")) # 5 397 184 -> 99,83% of total reads
+ps_quinque_wolbachia_field # 30 taxa / 19 samples
 
 jpeg("16-heatmap_quinque_wolbachia.jpg", width = 1080, height = 720)
 plot_heatmap(ps_quinque_wolbachia, sample.label="Field", sample.order="Field", low="#000033", high="#FF3300")+
@@ -663,8 +675,8 @@ ps_whole_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_whole_wolbachia),TRUE)[
 
 jpeg("18-heatmap_whole_wolbachia.jpg", width = 1080, height = 720)
 plot_heatmap(ps_whole_wolbachia, sample.label="Location", sample.order="Field", low="#000033", high="#FF3300")+
-  labs(title = expression(paste("ASV1 is abundant in almost all sequences of Whole mosquitoes")),
-       caption = expression(paste("Heatmap of Whole mosquitoes that contain Wolbachia")), x="Field", y = "ASV")
+  labs(title = expression(paste("ASV1 is abundant in almost all whole samples")),
+       caption = expression(paste("Heatmap of whole mosquitoes that contain Wolbachia")), x="Field", y = "ASV")
 dev.off()
 
 
@@ -677,8 +689,8 @@ ps_intestine_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_intestine_wolbachia
 
 jpeg("19-heatmap_intestine_wolbachia.jpg", width = 1080, height = 720)
 plot_heatmap(ps_intestine_wolbachia, sample.label="Location", sample.order="Field", low="#000033", high="#FF3300")+
-  labs(title = expression(paste("ASV1 is abundant in almost all sequences of Intestine samples")),
-       caption = expression(paste("Heatmap of Intestine samples that contain Wolbachia")), x="Field", y = "ASV")
+  labs(title = expression(paste("ASV1 is abundant in almost all intestine samples")),
+       caption = expression(paste("Heatmap of itestine samples that contain Wolbachia")), x="Field", y = "ASV")
 dev.off()
 
 # Ovary 
@@ -690,8 +702,8 @@ ps_ovary_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_ovary_wolbachia),TRUE)[
 
 jpeg("20-heatmap_ovary_wolbachia.jpg", width = 1080, height = 720)
 plot_heatmap(ps_ovary_wolbachia, sample.label="Location", sample.order="Field", low="#000033", high="#FF3300")+
-  labs(title = expression(paste("ASV1 is abundant in almost all sequences of Ovary samples")),
-       caption = expression(paste("Heatmap of Ovary samples that contain Wolbachia")), x="Field", y = "ASV")
+  labs(title = expression(paste("ASV1 is abundant in almost all ovary samples")),
+       caption = expression(paste("Heatmap of ovary samples that contain Wolbachia")), x="Field", y = "ASV")
 dev.off()
 
 # Salivary gland 
@@ -703,8 +715,8 @@ ps_gland_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_gland_wolbachia),TRUE)[
 
 jpeg("21-heatmap_gland_wolbachia.jpg", width = 1080, height = 720)
 plot_heatmap(ps_gland_wolbachia, sample.label="Location", sample.order="Field", low="#000033", high="#FF3300")+
-  labs(title = expression(paste("ASV1 is abundant in almost all sequences of Salivary Gland samples")),
-       caption = expression(paste("Heatmap of Salivary Gland samples that contain Wolbachia")), x="Field", y = "ASV")
+  labs(title = expression(paste("ASV1 is abundant in almost all salivary gland samples")),
+       caption = expression(paste("Heatmap of salivary gland samples that contain Wolbachia")), x="Field", y = "ASV")
 dev.off()
 
 # Pool 
@@ -714,10 +726,13 @@ ps_pool_wolbachia <- prune_taxa(taxa_sums(ps_pool_wolbachia) >= 1, ps_pool_wolba
 ps_pool_wolbachia <- prune_samples(sample_sums(ps_pool_wolbachia) >= 1, ps_pool_wolbachia)
 ps_pool_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_pool_wolbachia),TRUE)[1:30]), ps_pool_wolbachia)
 
+ps_pool 
+ps_pool_wolbachia 
+
 jpeg("22-heatmap_pool_wolbachia.jpg", width = 1080, height = 720)
 plot_heatmap(ps_pool_wolbachia, sample.label="Location", sample.order="Field", low="#000033", high="#FF3300")+
-  labs(title = expression(paste("ASV1 is abundant in almost all sequences of Pool samples")),
-       caption = expression(paste("Heatmap of Pool samples that contain Wolbachia")), x="Field", y = "ASV")
+  labs(title = expression(paste("ASV1 is abundant in almost all pooled samples")),
+       caption = expression(paste("Heatmap of pooled samples that contain Wolbachia")), x="Field", y = "ASV")
 dev.off()
 
 
