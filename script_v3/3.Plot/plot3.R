@@ -228,6 +228,12 @@ dev.off()
 
 
 # Stats : how many Wolbachia in Culex and how many Wolbachia - ?
+
+ps # 2454 taxa and 208 samples
+sum(as(otu_table(ps),"matrix")) # 26 659 233 counts
+sum(as(otu_table(ps),"matrix"))/208 # 128 169
+
+
 ps_decontam2 # 2031 taxa and 193 samples
 ps_decontam2 <- prune_taxa(taxa_sums(ps_decontam2) >= 1, ps_decontam2)
 ps_decontam2 <- prune_samples(sample_sums(ps_decontam2) >= 1, ps_decontam2)
@@ -787,7 +793,8 @@ adonis(vegdist(t(otu_table(ps_culex_whole)), method = "bray") ~ Location*Species
 # ---
 #   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-
+adonis(vegdist(t(otu_table(ps_culex)), method = "bray") ~ Location*Organ*Date,
+       data=as(sample_data(ps_culex), "data.frame"), permutation = 9999)
 
 
 
