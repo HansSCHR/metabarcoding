@@ -127,6 +127,13 @@ ps <- prune_samples(sample_sums(ps) >= 1, ps) # remove counts = 0
 
 write.table(asv_tab_standard, "1.asv_tab_standard.tsv", sep="\t", quote=F, col.names=NA)
 
+ps
+# phyloseq-class experiment-level object
+# otu_table()   OTU Table:         [ 2454 taxa and 208 samples ]
+# sample_data() Sample Data:       [ 208 samples by 15 sample variables ]
+# tax_table()   Taxonomy Table:    [ 2454 taxa by 7 taxonomic ranks ]
+# phy_tree()    Phylogenetic Tree: [ 2454 tips and 2452 internal nodes ]
+
 
 #--------------------------------------------------------------------------------------------#
 #----------------------------------------DECONTAM--------------------------------------------#
@@ -241,11 +248,17 @@ TAX_decontam <- tax_table(as.matrix(asv_tax_prev01_std))
 SAM_decontam <- sample_data(metadata_prev01)
 
 ps_decontam <- phyloseq(OTU_decontam, TAX_decontam, SAM_decontam)
-ps_decontam <- subset_samples(ps_decontam, Control!="Control sample") # remove blanks
-ps_decontam <- subset_taxa(ps_decontam, Kingdom == "Bacteria") # select only Bacteria
 ps_decontam <- prune_taxa(taxa_sums(ps_decontam) >= 1, ps_decontam)# remove counts = 0 in tax_table
+ps_decontam
+# phyloseq-class experiment-level object
+# otu_table()   OTU Table:         [ 2418 taxa and 208 samples ]
+# sample_data() Sample Data:       [ 208 samples by 16 sample variables ]
+# tax_table()   Taxonomy Table:    [ 2418 taxa by 7 taxonomic ranks ]
+
+ps_decontam <- subset_taxa(ps_decontam, Kingdom == "Bacteria") # select only Bacteria
 ps_decontam <- prune_samples(sample_sums(ps_decontam) >= 1, ps_decontam) # remove counts = 0 in otu_table
 
+ps_decontam <- subset_samples(ps_decontam, Control!="Control sample") # remove blanks
 
 #--------------------------------------------------------------------------------------------#
 #-------------------REMOVING REMAINING CHLOROPLAST AND MITOCHONDRIA--------------------------#
