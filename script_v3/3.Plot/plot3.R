@@ -437,6 +437,39 @@ dev.off()
 
 
 
+# Ovary - Asaia 
+
+ps_ovary <- subset_samples(ps_percent, Organ=="Ovary")
+ps_ovary <- prune_taxa(taxa_sums(ps_ovary) >= 1, ps_ovary)
+ps_ovary <- prune_samples(sample_sums(ps_ovary) >= 1, ps_ovary)
+sum(as(otu_table(ps_ovary),"matrix")) # 4851 counts
+sum(as(otu_table(ps_ovary),"matrix"))/49 # 99 counts by sample
+ps_ovary
+
+test <- as(tax_table(ps_ovary), "matrix")
+test3 <- as(sample_data(ps_ovary),"matrix")
+
+ps_ovary_asaia <- subset_taxa(ps_ovary, Genus=="Asaia")
+ps_ovary_asaia <- prune_taxa(taxa_sums(ps_ovary_asaia) >= 1, ps_ovary_asaia)
+ps_ovary_asaia <- prune_samples(sample_sums(ps_ovary_asaia) >= 1, ps_ovary_asaia)
+sum(as(otu_table(ps_ovary_asaia),"matrix")) # 3 counts
+sum(as(otu_table(ps_ovary_asaia),"matrix"))/1 # 3 counts by sample in NP14 (ovary of Aedes aegypti)
+ps_ovary_asaia
+
+test2 <- as(otu_table(ps_ovary_asaia),"matrix")
+
+ps_ovary_wolbachia <- subset_taxa(ps_ovary, Genus=="Wolbachia")
+ps_ovary_wolbachia <- prune_taxa(taxa_sums(ps_ovary_wolbachia) >= 1, ps_ovary_wolbachia)
+ps_ovary_wolbachia <- prune_samples(sample_sums(ps_ovary_wolbachia) >= 1, ps_ovary_wolbachia)
+sum(as(otu_table(ps_ovary_wolbachia),"matrix")) # 4801 counts
+sum(as(otu_table(ps_ovary_wolbachia),"matrix"))/49 # 97 counts by sample
+ps_ovary_wolbachia
+
+
+
+ps_ovary_brev <- subset_taxa(ps_ovary, Genus=="Brevundimonas")
+ps_ovary_wolbachia <- prune_taxa(taxa_sums(ps_ovary_wolbachia) >= 1, ps_ovary_wolbachia)
+ps_ovary_wolbachia <- prune_samples(sample_sums(ps_ovary_wolbachia) >= 1, ps_ovary_wolbachia)
 
 
 #--------------------------------------------------------------------------------------------#
