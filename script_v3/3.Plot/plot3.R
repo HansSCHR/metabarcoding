@@ -834,7 +834,7 @@ ps_pipiens_whole <- subset_samples(ps_pipiens, Organ=="Full")
 ps_pipiens_bosc_lavar <- subset_samples(ps_pipiens_whole, Location!="Camping Europe")
 ps_pipiens_ce_lavar <- subset_samples(ps_pipiens_whole, Location!="Bosc")
 
-adonis(vegdist(t(otu_table(ps_pipiens_bosc_lavar)), method = "bray") ~Location,
+adonis(vegdist(t(otu_table(ps_pipiens_bosc_lavar)), method = "bray") ~Field,
        data=as(sample_data(ps_pipiens_bosc_lavar), "data.frame"), permutation = 9999)
 # Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
 # Location   1    1.1851  1.1850  8.5438 0.19621  4e-04 ***
@@ -1024,6 +1024,30 @@ meta4 <- sample_data(ps_pipiens_ce_intestine)
 anosim(vegdist(t(otu_table(ps_pipiens_ce_intestine))), meta4$Date, permutations=1000)
 # ANOSIM statistic R: 0.1452 
 # Significance: 0.092907 
+
+
+
+
+# Difference between culex pipiens samples depends on organs - Effect of organs ? 
+ps_pipiens_organs <- subset_samples(ps_percent, Species=="Culex pipiens")
+ps_pipiens_organs <- subset_samples(ps_pipiens_organs, Organ!="Full")
+
+### Permanova - adonis
+adonis(vegdist(t(otu_table(ps_pipiens_organs)), method = "bray") ~ Organ,
+       data=as(sample_data(ps_pipiens_organs), "data.frame"), permutation = 9999)
+# Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+# Organ      2    2.1702 1.08512  6.6115 0.12218  1e-04 ***
+#   Residuals 95   15.5919 0.16413         0.87782           
+# Total     97   17.7622                 1.00000           
+# ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+
+### ANOSIM - vegan
+meta7 <- sample_data(ps_pipiens_organs)
+anosim(vegdist(t(otu_table(ps_pipiens_organs))), meta7$Organ, permutations=1000)
+# ANOSIM statistic R: 0.1505 
+# Significance: 0.000999
 
 
 
