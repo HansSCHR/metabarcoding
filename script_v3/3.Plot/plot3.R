@@ -837,9 +837,19 @@ ps_pipiens_ce_lavar <- subset_samples(ps_pipiens_whole, Location!="Bosc")
 adonis(vegdist(t(otu_table(ps_pipiens_bosc_lavar)), method = "bray") ~Location,
        data=as(sample_data(ps_pipiens_bosc_lavar), "data.frame"), permutation = 9999)
 # Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-# Location   1    1.1851  1.1850  8.5438 0.19621  7e-04 ***
+# Location   1    1.1851  1.1850  8.5438 0.19621  4e-04 ***
 #   Residuals 35    4.8546  0.1387         0.80379           
 # Total     36    6.0397                 1.00000           
+# ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+
+adonis(vegdist(t(otu_table(ps_pipiens_ce_lavar)), method = "bray") ~Location,
+       data=as(sample_data(ps_pipiens_ce_lavar), "data.frame"), permutation = 9999)
+# Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)  
+# Location   1    0.5469 0.54693  2.6655 0.08985  0.036 *
+#   Residuals 27    5.5400 0.20519         0.91015         
+# Total     28    6.0870                 1.00000         
 # ---
 #   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
