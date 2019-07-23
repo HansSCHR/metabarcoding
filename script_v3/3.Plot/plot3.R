@@ -15,6 +15,9 @@ setwd(path)
 dir.create("new_02.07.2019") # folder for plot
 path2 <- "D:/stage/data/runs_new2/new_02.07.2019"
 
+dir.create("new_23.07.2019") # folder for plot
+path2 <- "D:/stage/data/runs_new2/new_23.07.2019"
+
 
 #--------------------------------------------------------------------------------------------#
 #-------------------------------------LOAD PACKAGES------------------------------------------#
@@ -576,7 +579,7 @@ bray.new2 <- ordinate(ps_new, method="NMDS", distance="jaccard")
 
 
 pdf("11-NMDS_bray_organs_culex_CE.pdf")
-plot_ordination(prop.new, bray.new, color="Organ", shape="Date", title="Bray NMDS", label="Sample") +
+plot_ordination(prop.new, bray.new, color="Organ", title="Bray NMDS", label="Sample") +
   labs(title = expression(paste("Organ influences the structure of ", italic("Culex pipiens"), " bacterial community")),
        caption = expression(paste("Bray NMDS on Ovary, Intestine and Salivary Gland of ", italic('Culex pipiens'), " from Camping Europe")), x="NMDS1", y = "NMDS2")+
   geom_point(size = 4) +
@@ -584,7 +587,7 @@ plot_ordination(prop.new, bray.new, color="Organ", shape="Date", title="Bray NMD
 dev.off()
 
 pdf("12-NMDS_jaccard_organs_culex_CE.pdf")
-plot_ordination(prop.new2, bray.new2, color="Organ", shape="Date", title="Jaccard NMDS", label="Sample") +
+plot_ordination(prop.new2, bray.new2, color="Organ", title="Jaccard NMDS", label="Sample") +
   labs(title = expression(paste("Organ influences the structure of ", italic("Culex pipiens"), " bacterial community")),
        caption = expression(paste("Jaccard NMDS on Ovary, Intestine and Salivary Gland of ", italic('Culex pipiens'), " from Camping Europe")), x="NMDS1", y = "NMDS2")+
   geom_point(size = 4) +
@@ -654,10 +657,15 @@ ps_pipiens_wolbachia <- prune_samples(sample_sums(ps_pipiens_wolbachia) >= 1, ps
 ps_pipiens_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_pipiens_wolbachia),TRUE)[1:30]), ps_pipiens_wolbachia)
 
 jpeg("15-heatmap_pipiens_wolbachia.jpg", width = 1080, height = 720)
-plot_heatmap(ps_pipiens_wolbachia, sample.label="Field", sample.order="Field", low="#000033", high="#FF3300")+
+plot_heatmap(ps_pipiens_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="##00FF00", trans=log10_trans())+
+  #scale_fill_gradient(low="#000033", high="#FF3300",breaks=c(100,64,32,0), labels=c("100","64","32","0"))+
+  facet_wrap(~ Field + Organ, scales = "free_x", ncol = 3)+
   labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Culex pipiens"))),
-       caption = expression(paste("Heatmap of  ", italic('Culex pipiens'), " that contains Wolbachia")), x="Field", y = "ASV")
+       caption = expression(paste("Heatmap of ", italic('Culex pipiens'), " that contains Wolbachia (log10 transformation of abundance")), x="Field", y = "ASV")
 dev.off()
+
+
+
 
 # Culex quinquefasciatus
 ps_quinque <- subset_samples(ps_decontam2, Species=="Culex quinquefasciatus")
@@ -684,9 +692,11 @@ sum(as(otu_table(ps_quinque_wolbachia_field),"matrix")) # 5 397 184 -> 99,83% of
 ps_quinque_wolbachia_field # 30 taxa / 19 samples
 
 jpeg("16-heatmap_quinque_wolbachia.jpg", width = 1080, height = 720)
-plot_heatmap(ps_quinque_wolbachia, sample.label="Field", sample.order="Field", low="#000033", high="#FF3300")+
-  labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Culex quinquefasciatus"))),
-       caption = expression(paste("Heatmap of  ", italic('Culex quinquefasciatus'), " that contains Wolbachia")), x="Field", y = "ASV")
+plot_heatmap(ps_quinque_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="#00FF00", trans=log10_trans())+
+  #scale_fill_gradient(low="#000033", high="#FF3300",breaks=c(1250000,1000000,0), labels=c("1250000","750000","0"))+
+  facet_wrap(~ Organ, scales = "free_x", ncol = 3)+
+  labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Culex quinquefasciatus"), ", especially in ovary and pool samples")),
+       caption = expression(paste("Heatmap of ", italic('Culex quinquefasciatus'), " that contains Wolbachia (log10 transformation of abundance")), x="Field", y = "ASV")
 dev.off()
 
 
@@ -698,9 +708,11 @@ ps_aedes_wolbachia <- prune_samples(sample_sums(ps_aedes_wolbachia) >= 1, ps_aed
 ps_aedes_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_aedes_wolbachia),TRUE)[1:30]), ps_aedes_wolbachia)
 
 jpeg("17-heatmap_aedes_wolbachia.jpg", width = 1080, height = 720)
-plot_heatmap(ps_aedes_wolbachia, sample.label="Field", sample.order="Field", low="#000033", high="#FF3300")+
-  labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Aedes aegypti"))),
-       caption = expression(paste("Heatmap of  ", italic('Aedes aegypti'), " that contains Wolbachia")), x="Field", y = "ASV")
+plot_heatmap(ps_aedes_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="#00FF00", trans=log10_trans())+
+  #scale_fill_gradient(low="#000033", high="#FF3300",breaks=c(1250000,1000000,0), labels=c("1250000","750000","0"))+
+  facet_wrap(~ Organ, scales = "free_x", ncol = 3)+
+  labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Aedes aegypti"),", especially in ovary samples")),
+       caption = expression(paste("Heatmap of  ", italic('Aedes aegypti'), " that contains Wolbachia (log10 transformation of abundance")), x="Field", y = "ASV")
 dev.off()
 
 
@@ -769,7 +781,7 @@ ps_pool
 ps_pool_wolbachia 
 
 jpeg("22-heatmap_pool_wolbachia.jpg", width = 1080, height = 720)
-plot_heatmap(ps_pool_wolbachia, sample.label="Location", sample.order="Field", low="#000033", high="#FF3300")+
+plot_heatmap(ps_pool_wolbachia, sample.label="Location", sample.order="Field", low="#000033", high="#00FF00")+
   labs(title = expression(paste("ASV1 is abundant in almost all pooled samples")),
        caption = expression(paste("Heatmap of pooled samples that contain Wolbachia")), x="Field", y = "ASV")
 dev.off()
@@ -814,20 +826,138 @@ test5 <- as(sample_data(ps_pipiens_wolbachia),"matrix")
 #-------------------------------------------ADONIS-------------------------------------------#
 #--------------------------------------------------------------------------------------------#
 
-# Culex whole 
-ps_culex_whole <- subset_samples(ps_percent, Organ=="Full" & Species!="Aedes aegypti")
-adonis(vegdist(t(otu_table(ps_culex_whole)), method = "bray") ~ Location*Species,
-       data=as(sample_data(ps_culex_whole), "data.frame"), permutation = 9999)
+#Anosim - Analysis of group similarities : difference between field and labo pipiens samples ? - Effect of Field ?
+ps_pipiens_whole <- subset_samples(ps_pipiens, Organ=="Full")
 
+ps_pipiens_bosc_lavar <- subset_samples(ps_pipiens_whole, Location!="Camping Europe")
+ps_pipiens_ce_lavar <- subset_samples(ps_pipiens_whole, Location!="Bosc")
+
+meta1 <- sample_data(ps_pipiens_bosc_lavar)
+meta2 <- sample_data(ps_pipiens_ce_lavar)
+
+test <- as(sample_data(ps_pipiens_bosc_lavar),"matrix")
+
+anosim(vegdist(t(otu_table(ps_pipiens_bosc_lavar))), meta1$Location, permutations=1000)
+# ANOSIM statistic R: 0.1413 
+# Significance: 0.026973 
+
+anosim(vegdist(t(otu_table(ps_pipiens_ce_lavar))), meta2$Location, permutations=1000)
+# ANOSIM statistic R: 0.1571 
+# Significance: 0.12188 
+
+
+# R > 0 --> there is a difference between samples depends on they are lab or field 
+# Siginifiance < 0,005 --> difference is significative 
+
+
+
+
+#Anosim : difference between whole Aedes aegypti and Culex quinquefasciatus from Guadeloupe - Effect of Species ?
+
+ps_analysis <- subset_samples(ps_percent, Location=="Guadeloupe" | Field=="Field")
+ps_analysis <- subset_samples(ps_analysis, Organ=="Full")
+test <- as(sample_data(ps_analysis),"matrix")
+
+metadata_analysis <- sample_data(ps_analysis)
+
+anosim(vegdist(t(otu_table(ps_analysis))), metadata_analysis$Species, permutations=1000)
+# ANOSIM statistic R: 0.7323 
+# Significance: 0.000999 
+
+
+
+
+#Anosim : difference between whole field and wolbachia- Culex quinquefasciatus - Effect of Tetracycline ?
+ps_quinque_whole <- subset_samples(ps_quinque, Organ=="Full")
+metadata_analysis2 <- sample_data(ps_quinque_whole)
+anosim(vegdist(t(otu_table(ps_quinque_whole))), metadata_analysis2$Field, permutations=1000)
+# ANOSIM statistic R: 0.9114 
+# Significance: 0.000999 
+
+
+
+
+# Culex whole - Does location influence the structure of Culex microbiote ? - Effect of Location ? (confirmed effect of Species too ?)
+ps_culex_whole <- subset_samples(ps_percent, Organ=="Full" & Species!="Aedes aegypti")
+ps_culex_whole_field <- subset_samples(ps_culex_whole, Field=="Field")
+test <- as(sample_data(ps_culex_whole_field),"matrix")
+
+adonis(vegdist(t(otu_table(ps_culex_whole_field)), method = "bray") ~Location,
+       data=as(sample_data(ps_culex_whole_field), "data.frame"), permutation = 9999)
 # Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-# Location   4    8.4039 2.10098  11.316 0.42199  1e-04 ***
-#   Residuals 62   11.5110 0.18566         0.57801           
-# Total     66   19.9149                 1.00000           
+# Location   2    2.3422 1.17111  7.3307 0.34367  2e-04 ***
+#   Residuals 28    4.4731 0.15975         0.65633           
+# Total     30    6.8153                 1.00000           
 # ---
 #   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-adonis(vegdist(t(otu_table(ps_culex)), method = "bray") ~ Location*Organ*Date,
+adonis(vegdist(t(otu_table(ps_culex_whole_field)), method = "bray") ~Species,
+       data=as(sample_data(ps_culex_whole_field), "data.frame"), permutation = 9999)
+# Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+# Species    1    2.0737  2.0737  12.683 0.30427  1e-04 ***
+#   Residuals 29    4.7416  0.1635         0.69573           
+# Total     30    6.8153                 1.00000           
+# ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+
+adonis(vegdist(t(otu_table(ps_culex_whole_field)), method = "bray") ~Species+Location,
+       data=as(sample_data(ps_culex_whole_field), "data.frame"), permutation = 9999)
+# Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+# Species    1    2.0737 2.07372 12.9807 0.30427 0.0001 ***
+#   Location   1    0.2685 0.26850  1.6807 0.03940 0.1417    
+# Residuals 28    4.4731 0.15975         0.65633           
+# Total     30    6.8153                 1.00000           
+# ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+
+
+adonis(vegdist(t(otu_table(ps_culex)), method = "bray") ~ Location+Species,
        data=as(sample_data(ps_culex), "data.frame"), permutation = 9999)
+# Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+# Location    4     8.902 2.22562  6.4612 0.13063  1e-04 ***
+#   Residuals 172    59.247 0.34446         0.86937           
+# Total     176    68.150                 1.00000           
+# ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+
+
+
+
+# Adonis : difference between culex samples from Camping Europe depends on two date - Effect of Time ? 
+ps_pipiens_ce <- subset_samples(ps_pipiens, Location=="Camping Europe")
+ps_pipiens_ce_ovary <- subset_samples(ps_pipiens_ce, Organ=="Ovary")
+ps_pipiens_ce_intestine <- subset_samples(ps_pipiens_ce, Organ=="Intestine")
+test <- as(sample_data(ps_pipiens_ce_ovary),"matrix")
+test2 <- as(sample_data(ps_pipiens_ce_intestine),"matrix")
+
+adonis(vegdist(t(otu_table(ps_pipiens_ce_ovary)), method = "bray") ~ Date,
+       data=as(sample_data(ps_pipiens_ce_ovary), "data.frame"), permutation = 9999)
+# Df SumsOfSqs   MeanSqs F.Model      R2 Pr(>F)
+# Date       2  0.013597 0.0067984 0.51535 0.05146  0.611
+# Residuals 19  0.250645 0.0131918         0.94854       
+# Total     21  0.264241                   1.00000 
+
+
+adonis(vegdist(t(otu_table(ps_pipiens_ce_intestine)), method = "bray") ~ Date,
+       data=as(sample_data(ps_pipiens_ce_intestine), "data.frame"), permutation = 9999)
+# Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)
+# Date       2    0.6318 0.31589 0.98822 0.09894 0.3877
+# Residuals 18    5.7539 0.31966         0.90106       
+# Total     20    6.3856                 1.00000 
+
+meta3 <- sample_data(ps_pipiens_ce_ovary)
+anosim(vegdist(t(otu_table(ps_pipiens_ce_ovary))), meta3$Date, permutations=1000)
+# ANOSIM statistic R: -0.01842 
+# Significance: 0.51449 
+
+
+meta4 <- sample_data(ps_pipiens_ce_intestine)
+anosim(vegdist(t(otu_table(ps_pipiens_ce_intestine))), meta4$Date, permutations=1000)
+# ANOSIM statistic R: 0.1452 
+# Significance: 0.092907 
 
 
 
