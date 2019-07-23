@@ -657,7 +657,7 @@ ps_pipiens_wolbachia <- prune_samples(sample_sums(ps_pipiens_wolbachia) >= 1, ps
 ps_pipiens_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_pipiens_wolbachia),TRUE)[1:30]), ps_pipiens_wolbachia)
 
 jpeg("15-heatmap_pipiens_wolbachia.jpg", width = 1080, height = 720)
-plot_heatmap(ps_pipiens_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="##00FF00", trans=log10_trans())+
+plot_heatmap(ps_pipiens_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="#00FF00", trans=log10_trans())+
   #scale_fill_gradient(low="#000033", high="#FF3300",breaks=c(100,64,32,0), labels=c("100","64","32","0"))+
   facet_wrap(~ Field + Organ, scales = "free_x", ncol = 3)+
   labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Culex pipiens"))),
@@ -826,12 +826,25 @@ test5 <- as(sample_data(ps_pipiens_wolbachia),"matrix")
 #-------------------------------------------ADONIS-------------------------------------------#
 #--------------------------------------------------------------------------------------------#
 
-#Anosim - Analysis of group similarities : difference between field and labo pipiens samples ? - Effect of Field ?
+# Difference between field and labo pipiens samples ? - Effect of Field ?
+
+### Permanova - adonis
 ps_pipiens_whole <- subset_samples(ps_pipiens, Organ=="Full")
 
 ps_pipiens_bosc_lavar <- subset_samples(ps_pipiens_whole, Location!="Camping Europe")
 ps_pipiens_ce_lavar <- subset_samples(ps_pipiens_whole, Location!="Bosc")
 
+adonis(vegdist(t(otu_table(ps_pipiens_bosc_lavar)), method = "bray") ~Location,
+       data=as(sample_data(ps_pipiens_bosc_lavar), "data.frame"), permutation = 9999)
+# Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+# Location   1    1.1851  1.1850  8.5438 0.19621  7e-04 ***
+#   Residuals 35    4.8546  0.1387         0.80379           
+# Total     36    6.0397                 1.00000           
+# ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+
+### ANOSIM - vegan
 meta1 <- sample_data(ps_pipiens_bosc_lavar)
 meta2 <- sample_data(ps_pipiens_ce_lavar)
 
@@ -845,19 +858,31 @@ anosim(vegdist(t(otu_table(ps_pipiens_ce_lavar))), meta2$Location, permutations=
 # ANOSIM statistic R: 0.1571 
 # Significance: 0.12188 
 
-
 # R > 0 --> there is a difference between samples depends on they are lab or field 
 # Siginifiance < 0,005 --> difference is significative 
 
 
 
 
-#Anosim : difference between whole Aedes aegypti and Culex quinquefasciatus from Guadeloupe - Effect of Species ?
+#Difference between whole Aedes aegypti and Culex quinquefasciatus from Guadeloupe - Effect of Species ?
+
+### Permanova - adonis
 
 ps_analysis <- subset_samples(ps_percent, Location=="Guadeloupe" | Field=="Field")
 ps_analysis <- subset_samples(ps_analysis, Organ=="Full")
 test <- as(sample_data(ps_analysis),"matrix")
 
+adonis(vegdist(t(otu_table(ps_analysis)), method = "bray") ~Species,
+       data=as(sample_data(ps_analysis), "data.frame"), permutation = 9999)
+# Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+# Species    2    5.6424 2.82121  16.607 0.46639  1e-04 ***
+#   Residuals 38    6.4557 0.16989         0.53361           
+# Total     40   12.0981                 1.00000           
+# ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+
+### ANOSIM - vegan
 metadata_analysis <- sample_data(ps_analysis)
 
 anosim(vegdist(t(otu_table(ps_analysis))), metadata_analysis$Species, permutations=1000)
@@ -867,8 +892,22 @@ anosim(vegdist(t(otu_table(ps_analysis))), metadata_analysis$Species, permutatio
 
 
 
-#Anosim : difference between whole field and wolbachia- Culex quinquefasciatus - Effect of Tetracycline ?
+#Difference between whole field and wolbachia- Culex quinquefasciatus - Effect of Tetracycline ?
+
+### Permanova - adonis
 ps_quinque_whole <- subset_samples(ps_quinque, Organ=="Full")
+
+adonis(vegdist(t(otu_table(ps_quinque_whole)), method = "bray") ~Field,
+       data=as(sample_data(ps_quinque_whole), "data.frame"), permutation = 9999)
+# Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+# Field      1    2.1141 2.11409  6.4502 0.23498  1e-04 ***
+#   Residuals 21    6.8828 0.32775         0.76502           
+# Total     22    8.9969                 1.00000           
+# ---
+#   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+
+### ANOSIM - vegan
 metadata_analysis2 <- sample_data(ps_quinque_whole)
 anosim(vegdist(t(otu_table(ps_quinque_whole))), metadata_analysis2$Field, permutations=1000)
 # ANOSIM statistic R: 0.9114 
@@ -877,7 +916,10 @@ anosim(vegdist(t(otu_table(ps_quinque_whole))), metadata_analysis2$Field, permut
 
 
 
-# Culex whole - Does location influence the structure of Culex microbiote ? - Effect of Location ? (confirmed effect of Species too ?)
+# Does location influence the structure of whole Culex microbiote ? - Effect of Location ? (confirmed effect of Species too ?)
+
+
+### Permanova - adonois
 ps_culex_whole <- subset_samples(ps_percent, Organ=="Full" & Species!="Aedes aegypti")
 ps_culex_whole_field <- subset_samples(ps_culex_whole, Field=="Field")
 test <- as(sample_data(ps_culex_whole_field),"matrix")
@@ -923,10 +965,22 @@ adonis(vegdist(t(otu_table(ps_culex)), method = "bray") ~ Location+Species,
 #   Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 
+### Anosim - vegan 
+meta5 <- sample_data(ps_culex_whole_field)
+anosim(vegdist(t(otu_table(ps_culex_whole_field))), meta5$Location, permutations=1000)
+# ANOSIM statistic R: 0.4746 
+# Significance: 0.000999
+
+anosim(vegdist(t(otu_table(ps_culex_whole_field))), meta5$Species, permutations=1000)
+# ANOSIM statistic R: 0.6285 
+# Significance: 0.000999 
 
 
 
-# Adonis : difference between culex samples from Camping Europe depends on two date - Effect of Time ? 
+
+# Difference between culex samples from Camping Europe depends on two date - Effect of Time ? 
+
+### Permanova - adonis
 ps_pipiens_ce <- subset_samples(ps_pipiens, Location=="Camping Europe")
 ps_pipiens_ce_ovary <- subset_samples(ps_pipiens_ce, Organ=="Ovary")
 ps_pipiens_ce_intestine <- subset_samples(ps_pipiens_ce, Organ=="Intestine")
@@ -948,6 +1002,8 @@ adonis(vegdist(t(otu_table(ps_pipiens_ce_intestine)), method = "bray") ~ Date,
 # Residuals 18    5.7539 0.31966         0.90106       
 # Total     20    6.3856                 1.00000 
 
+
+### ANOSIM - vegan
 meta3 <- sample_data(ps_pipiens_ce_ovary)
 anosim(vegdist(t(otu_table(ps_pipiens_ce_ovary))), meta3$Date, permutations=1000)
 # ANOSIM statistic R: -0.01842 
