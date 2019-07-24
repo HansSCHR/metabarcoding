@@ -691,8 +691,22 @@ ps_quinque_wolbachia_field <- prune_samples(sample_sums(ps_quinque_wolbachia_fie
 sum(as(otu_table(ps_quinque_wolbachia_field),"matrix")) # 5 397 184 -> 99,83% of total reads
 ps_quinque_wolbachia_field # 30 taxa / 19 samples
 
+meta_test <- as(sample_data(ps_quinque_wolbachia), "matrix")
+sample_data(ps_quinque_wolbachia)$Organ <- factor(sample_data(ps_quinque_wolbachia)$Organ, levels=c("Intestine", "Ovary", "Salivary gland","Full", "Pool"))
+
+taxa_test <- as(tax_table(ps_quinque_wolbachia),"matrix")
+otu_test <- as(otu_table(ps_quinque_wolbachia),"matrix")
+
 jpeg("16-heatmap_quinque_wolbachia.jpg", width = 1080, height = 720)
-plot_heatmap(ps_quinque_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="#00FF00", trans=log10_trans())+
+plot_heatmap(ps_quinque_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="#00FF00", trans=log_trans(10))+
+  #scale_fill_gradient(low="#000033", high="#FF3300",breaks=c(1250000,1000000,0), labels=c("1250000","750000","0"))+
+  facet_wrap(~ Organ, scales = "free_x", ncol = 3)+
+  labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Culex quinquefasciatus"), ", especially in ovary and pool samples")),
+       caption = expression(paste("Heatmap of ", italic('Culex quinquefasciatus'), " that contains Wolbachia (log10 transformation of abundance")), x="Field", y = "ASV")
+dev.off()
+
+jpeg("16bis-heatmap_quinque_wolbachia.jpg", width = 1080, height = 720)
+plot_heatmap(ps_quinque_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="#00FF00", trans=identity_trans())+
   #scale_fill_gradient(low="#000033", high="#FF3300",breaks=c(1250000,1000000,0), labels=c("1250000","750000","0"))+
   facet_wrap(~ Organ, scales = "free_x", ncol = 3)+
   labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Culex quinquefasciatus"), ", especially in ovary and pool samples")),
@@ -701,16 +715,24 @@ dev.off()
 
 
 # Aedes aegypti
-ps_aedes <- subset_samples(ps_decontam2, Species=="Aedes aegypti")
+ps_aedes <- subset_samples(ps_decontam2, Species=="Aedes aegypti" & Organ!="Pool")
 ps_aedes_wolbachia <- subset_taxa(ps_aedes, Genus=="Wolbachia")
 ps_aedes_wolbachia <- prune_taxa(taxa_sums(ps_aedes_wolbachia) >= 1, ps_aedes_wolbachia)
 ps_aedes_wolbachia <- prune_samples(sample_sums(ps_aedes_wolbachia) >= 1, ps_aedes_wolbachia)
 ps_aedes_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_aedes_wolbachia),TRUE)[1:30]), ps_aedes_wolbachia)
 
 jpeg("17-heatmap_aedes_wolbachia.jpg", width = 1080, height = 720)
-plot_heatmap(ps_aedes_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="#00FF00", trans=log10_trans())+
+plot_heatmap(ps_aedes_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="#00FF00", trans=log_trans(10))+
   #scale_fill_gradient(low="#000033", high="#FF3300",breaks=c(1250000,1000000,0), labels=c("1250000","750000","0"))+
-  facet_wrap(~ Organ, scales = "free_x", ncol = 3)+
+  facet_wrap(~ Organ, scales = "free_x", ncol = 2)+
+  labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Aedes aegypti"),", especially in ovary samples")),
+       caption = expression(paste("Heatmap of  ", italic('Aedes aegypti'), " that contains Wolbachia (log10 transformation of abundance")), x="Field", y = "ASV")
+dev.off()
+
+jpeg("17bis-heatmap_aedes_wolbachia.jpg", width = 1080, height = 720)
+plot_heatmap(ps_aedes_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="#00FF00", trans=identity_trans())+
+  #scale_fill_gradient(low="#000033", high="#FF3300",breaks=c(1250000,1000000,0), labels=c("1250000","750000","0"))+
+  facet_wrap(~ Organ, scales = "free_x", ncol = 2)+
   labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Aedes aegypti"),", especially in ovary samples")),
        caption = expression(paste("Heatmap of  ", italic('Aedes aegypti'), " that contains Wolbachia (log10 transformation of abundance")), x="Field", y = "ASV")
 dev.off()
