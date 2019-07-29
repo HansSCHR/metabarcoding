@@ -15,7 +15,7 @@ setwd(path)
 dir.create("new_02.07.2019") # folder for plot
 path2 <- "D:/stage/data/runs_new2/new_02.07.2019"
 
-dir.create("new_23.07.2019") # folder for plot
+dir.create("new_29.07.2019") # folder for plot
 path2 <- "D:/stage/data/runs_new2/new_29.07.2019"
 
 
@@ -34,6 +34,7 @@ library("reshape")
 library("plotly")
 library("hrbrthemes")
 library("grid")
+library("plyr")
 
 scripts <- c("graphical_methods.R",
              "tree_methods.R",
@@ -255,6 +256,42 @@ dev.off()
 #----------------------------------TAXONOMIC SUMMARIES---------------------------------------#
 #--------------------------------------------------------------------------------------------#
 
+
+# physeq2 = filter_taxa(ps_decontam2, function(x) mean(x) > 0.1, TRUE)
+# physeq2
+# physeq3 = transform_sample_counts(physeq2, function(x) x / sum(x) )
+# physeq3
+# 
+# ps_nopool <- subset_samples(physeq3, Organ!="Pool")
+# 
+# nopool <- psmelt(ps_nopool)
+# 
+# glom <- tax_glom(ps_nopool, taxrank = 'Phylum')
+# glom # should list # taxa as # phyla
+# data <- psmelt(glom) # create dataframe from phyloseq object
+# data$Phylum <- as.character(data$Phylum) #convert to character
+# 
+# #simple way to rename phyla with < 1% abundance
+# data$Phylum[data$Abundance < 0.01] <- "< 1% abund."
+# 
+# medians <- ddply(data, ~Phylum, function(x) c(median=median(x$Abundance)))
+# remainder <- medians[medians$median <= 0.01,]$Phylum
+# remainder
+# 
+# data[data$Phylum %in% remainder,]$Phylum <- "Phyla < 1% abund."
+# #rename phyla with < 1% relative abundance
+# data$Phylum[data$Abundance < 0.01] <- "Phyla < 1% abund."
+# 
+# 
+# p <- ggplot(data=data, aes(x=Sample, y=Abundance, fill=Phylum))
+# p + geom_bar(aes(), stat="identity", position="stack") +
+#   scale_fill_manual(values = c("darkblue", "darkgoldenrod1", "darkseagreen", "darkorchid", "darkolivegreen1", "lightskyblue", "darkgreen", "deeppink", "khaki2", "firebrick", "brown1", "darkorange1", "cyan1", "royalblue4", "darksalmon", "darkblue",
+#                                "royalblue4", "dodgerblue3", "steelblue1", "lightskyblue", "darkseagreen", "darkgoldenrod1", "darkseagreen", "darkorchid", "darkolivegreen1", "brown1", "darkorange1", "cyan1", "darkgrey")) +
+#   theme(legend.position="bottom") + guides(fill=guide_legend(nrow=5))
+
+
+
+
 # Phylum 
 ps_percent_nopool <- subset_samples(ps_percent, Organ!="Pool")
 p <- plot_composition(ps_percent_nopool,
@@ -270,6 +307,7 @@ p <- plot_composition(ps_percent_nopool,
 pdf("4-taxo_phylum.pdf")
 plot(p)
 dev.off()
+
 
 
 # Proteobacteria 
@@ -334,17 +372,32 @@ plot(p)
 dev.off()
 
 
-# 20 genus less abundant 
-otu_table(ps_proteo) <- factor(sample_data(ps_proteo)$Species, 
-                                         levels=c("Culex pipiens", "Culex quinquefasciatus", "Aedes aegypti"))
+# Without the 20 most abundant genus
+ps_proteo_nopool2 <- subset_taxa(ps_proteo_nopool, Genus!="Wolbachia" & Genus!="Acinetobacter" & Genus!="Aeromonas" & Genus!="Asaia" &
+                                    Genus!="Enhydrobacter" & Genus!="Erwinia" & Genus!="Haemophilus" & Genus!="Klebsiella" & Genus!="Legionella" &
+                                    Genus!="Massilia" & Genus!="Morganella" & Genus!="Providencia" & Genus!="Pseudomonas" & Genus!="Rahnella" &
+                                    Genus!="Ralstonia" & Genus!="Serratia" & Genus!="Sphingomonas" & Genus!="Thorsellia" & Genus!="Zymobacter")
 
-ps_quinque_wolbachia <- prune_samples(sample_sums(ps_quinque_wolbachia) >= 1, ps_quinque_wolbachia)
+p <- plot_composition(ps_proteo_nopool2,
+                      taxaRank1 = "Kingdom",
+                      taxaSet1 ="Bacteria",
+                      taxaRank2 = "Genus", 
+                      numberOfTaxa = 20, 
+                      fill= "Genus") +
+  facet_wrap(~ Species+Organ+Location, scales = "free_x", ncol=5) + 
+  theme(plot.title = element_text(hjust = 0.5), strip.text = element_text(size=8), strip.text.x = element_text(margin = margin(0.1,0,0.1,0, "cm"))) + 
+  labs(title = "Wolbachia is the dominant genus",
+       caption = "Taxonomic composition (20 most abundant genus)", x="Sample", y = "Abundance")
 
-x <- function(x) {order(x, decreasing = TRUE)}
-x(ps_proteo)
-otu_proteo <- as(otu_table(ps_proteo),"matrix")
+pdf("7bis-taxo_wt_20_genus.pdf")
+plot(p)
+dev.off()
 
-sort(otu_table(ps_proteo), decreasing=TRUE)
+
+
+
+
+
 
 #--------------------------------------------------------------------------------------------#
 #-----------------------------------NMMDS (bray distance)------------------------------------#
@@ -359,6 +412,9 @@ ps_culex_whole_field <- subset_samples(ps_culex_whole, Location!="Labo Tetracycl
 
 ps_pipiens_whole <- subset_samples(ps_percent_whole, Species=="Culex pipiens")
 ps_pipiens_field <- subset_samples(ps_pipiens_whole, Field=="Field")
+
+ps_proteo_nopool2 <- prune_taxa(taxa_sums(ps_proteo_nopool2) >= 1, ps_proteo_nopool2)
+ps_proteo_nopool2 <- prune_samples(sample_sums(ps_proteo_nopool2) >= 1, ps_proteo_nopool2)
 
 #metadata_pipiens_Whole_field <- as(sample_data(Whole_pipiens_field),"matrix")
 
@@ -376,6 +432,8 @@ prop.pipiens_whole <- transform_sample_counts(ps_pipiens_whole, function(count_t
 bray.pipiens_whole <- ordinate(ps_pipiens_whole, method="NMDS", distance="bray")
 jacc.pipiens_whole <- ordinate(ps_pipiens_whole, method="NMDS", distance="jaccard")
 
+prop.proteo_nopool2 <- transform_sample_counts(ps_proteo_nopool2, function(count_tab) count_tab/sum(count_tab))
+bray.proteo_nopool2 <- ordinate(ps_proteo_nopool2, method="NMDS", distance="bray")
 
 pdf("7-NMDS_bray_whole.pdf")
 plot_ordination(prop.percent_whole, bray.percent_whole, color="Species", title="Bray NMDS with Whole body", label="Sample") +
@@ -410,7 +468,21 @@ pdf("9-NMDS_bray_culex_whole_ellipse.pdf")
   theme_gray()
 dev.off()
   
+
+plot_ordination(prop.proteo_nopool2, bray.proteo_nopool2, color="Organ", title="Bray NMDS with Whole body", label="Sample") +
+  labs(title = "Does species influence bacterial community structure ? ",
+       caption = "Bray NMDS on whole mosquitoes", x="NMDS1", y = "NMDS2")+
+  geom_point(size = 4) +
+  theme_gray()
   
+plot_ordination(prop.proteo_nopool2, bray.proteo_nopool2, color="Field", shape="Location", title="Bray NMDS with Whole body - Location without Aedes aegypti", label="Sample") +
+  labs(title = "Do antibiotics influence microbiote ? ",
+       caption = "Bray NMDS on whole Culex mosquitoes", x="NMDS1", y = "NMDS2") +
+  #stat_ellipse(geom = "polygon", level=0.70,alpha = 1/2, aes(fill = Species))+
+  scale_fill_manual(values=c("yellow","green"))+
+  scale_color_manual(values=c("red", "blue"))+
+  geom_point(size = 5) +
+  theme_gray()
 
 
 # pdf("10-NMDS_bray_pipiens_whole.pdf")
