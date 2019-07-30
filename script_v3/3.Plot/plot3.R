@@ -470,26 +470,37 @@ pdf("9-NMDS_bray_culex_whole_ellipse.pdf")
 dev.off()
   
 pdf("9bis-NMDS_bray_proteo_nopool2.pdf")
-plot_ordination(prop.proteo_nopool2, bray.proteo_nopool2, color="Organ", title="Bray NMDS with Whole body", label="Sample") +
+plot_ordination(prop.proteo_nopool2, bray.proteo_nopool2, color="Species", title="Bray NMDS with Whole body", label="Sample") +
   labs(title = "Does species influence bacterial community structure ? ",
-       caption = "Bray NMDS on whole mosquitoes", x="NMDS1", y = "NMDS2")+
+       caption = "Bray NMDS on whole mosquitoes (- the 20 most abudant genus)", x="NMDS1", y = "NMDS2")+
   geom_point(size = 4) +
   theme_gray()
 dev.off()
 
-
-plot_ordination(prop.proteo_nopool2, jacc.proteo_nopool2, color="Organ", title="Bray NMDS with Whole body", label="Sample") +
+pdf("9bis-NMDS_jacc_proteo_nopool2.pdf")
+plot_ordination(prop.proteo_nopool2, jacc.proteo_nopool2, color="Species", title="Jaccard NMDS with Whole body", label="Sample") +
   labs(title = "Does species influence bacterial community structure ? ",
-       caption = "Bray NMDS on whole mosquitoes", x="NMDS1", y = "NMDS2")+
+       caption = "Jaccard NMDS on whole mosquitoes (- the 20 most abudant genus)", x="NMDS1", y = "NMDS2")+
   geom_point(size = 4) +
   theme_gray()
-
+dev.off()
 
   
 pdf("9bis2-NMDS_bray_proteo_nopool2.pdf")
 plot_ordination(prop.proteo_nopool2, bray.proteo_nopool2, color="Field", shape="Location", title="Bray NMDS with Whole body - Location without Aedes aegypti", label="Sample") +
   labs(title = "Do antibiotics influence microbiote ? ",
        caption = "Bray NMDS on whole Culex mosquitoes", x="NMDS1", y = "NMDS2") +
+  #stat_ellipse(geom = "polygon", level=0.70,alpha = 1/2, aes(fill = Species))+
+  scale_fill_manual(values=c("yellow","green"))+
+  scale_color_manual(values=c("red", "blue"))+
+  geom_point(size = 5) +
+  theme_gray()
+dev.off()
+
+pdf("9bis2-NMDS_jacc_proteo_nopool2.pdf")
+plot_ordination(prop.proteo_nopool2, bray.proteo_nopool2, color="Field", shape="Location", title="Jaccard NMDS with Whole body - Location without Aedes aegypti", label="Sample") +
+  labs(title = "Do antibiotics influence microbiote ? ",
+       caption = "Bray NMDS on whole Culex mosquitoes (- the 20 most abudant genus)", x="NMDS1", y = "NMDS2") +
   #stat_ellipse(geom = "polygon", level=0.70,alpha = 1/2, aes(fill = Species))+
   scale_fill_manual(values=c("yellow","green"))+
   scale_color_manual(values=c("red", "blue"))+
@@ -607,7 +618,7 @@ plot_heatmap(ps_pipiens_wolbachia, sample.label="Location", sample.order="Locati
   #scale_fill_gradient(low="#000033", high="#FF3300",breaks=c(100,64,32,0), labels=c("100","64","32","0"))+
   facet_wrap(~ Field + Organ, scales = "free_x", ncol = 3)+
   labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Culex pipiens"))),
-       caption = expression(paste("Heatmap of ", italic('Culex pipiens'), " that contains Wolbachia (log10 transformation of abundance")), x="Field", y = "ASV")
+       caption = expression(paste("Heatmap of ", italic('Culex pipiens'), " that contains Wolbachia (no transformation")), x="Field", y = "ASV")
 dev.off()
 
 
@@ -650,16 +661,16 @@ plot_heatmap(ps_quinque_wolbachia, sample.label="Location", sample.order="Locati
   #scale_fill_gradient(low="gray", high="#FF3300",breaks=c(1250000,1000000,0), labels=c("1250000","750000","0"))+
   facet_wrap(~ Organ, scales = "free_x", ncol = 3)+
   labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Culex quinquefasciatus"), ", especially in ovary and pool samples")),
-       caption = expression(paste("Heatmap of ", italic('Culex quinquefasciatus'), " that contains Wolbachia (log10 transformation of abundance")), x="Field", y = "ASV")
+       caption = expression(paste("Heatmap of ", italic('Culex quinquefasciatus'), " that contains Wolbachia (no transformation)")), x="Field", y = "ASV")
 dev.off()
 
-jpeg("16bis-heatmap_quinque_wolbachia.jpg", width = 1080, height = 720)
-plot_heatmap(ps_quinque_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="#00FF00", trans=identity_trans())+
-  #scale_fill_gradient(low="#000033", high="#FF3300",breaks=c(1250000,1000000,0), labels=c("1250000","750000","0"))+
-  facet_wrap(~ Organ, scales = "free_x", ncol = 3)+
-  labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Culex quinquefasciatus"), ", especially in ovary and pool samples")),
-       caption = expression(paste("Heatmap of ", italic('Culex quinquefasciatus'), " that contains Wolbachia (log10 transformation of abundance")), x="Field", y = "ASV")
-dev.off()
+# jpeg("16bis-heatmap_quinque_wolbachia.jpg", width = 1080, height = 720)
+# plot_heatmap(ps_quinque_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="#00FF00", trans=identity_trans())+
+#   #scale_fill_gradient(low="#000033", high="#FF3300",breaks=c(1250000,1000000,0), labels=c("1250000","750000","0"))+
+#   facet_wrap(~ Organ, scales = "free_x", ncol = 3)+
+#   labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Culex quinquefasciatus"), ", especially in ovary and pool samples")),
+#        caption = expression(paste("Heatmap of ", italic('Culex quinquefasciatus'), " that contains Wolbachia (log10 transformation of abundance")), x="Field", y = "ASV")
+# dev.off()
 
 
 # Aedes aegypti
@@ -674,16 +685,16 @@ plot_heatmap(ps_aedes_wolbachia, sample.label="Location", sample.order="Location
   #scale_fill_gradient(low="#000033", high="#FF3300",breaks=c(1250000,1000000,0), labels=c("1250000","750000","0"))+
   facet_wrap(~ Organ, scales = "free_x", ncol = 2)+
   labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Aedes aegypti"),", especially in ovary samples")),
-       caption = expression(paste("Heatmap of  ", italic('Aedes aegypti'), " that contains Wolbachia (log10 transformation of abundance")), x="Field", y = "ASV")
+       caption = expression(paste("Heatmap of  ", italic('Aedes aegypti'), " that contains Wolbachia (no transformation)")), x="Field", y = "ASV")
 dev.off()
 
-jpeg("17bis-heatmap_aedes_wolbachia.jpg", width = 1080, height = 720)
-plot_heatmap(ps_aedes_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="#00FF00", trans=identity_trans())+
-  #scale_fill_gradient(low="#000033", high="#FF3300",breaks=c(1250000,1000000,0), labels=c("1250000","750000","0"))+
-  facet_wrap(~ Organ, scales = "free_x", ncol = 2)+
-  labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Aedes aegypti"),", especially in ovary samples")),
-       caption = expression(paste("Heatmap of  ", italic('Aedes aegypti'), " that contains Wolbachia (log10 transformation of abundance")), x="Field", y = "ASV")
-dev.off()
+# jpeg("17bis-heatmap_aedes_wolbachia.jpg", width = 1080, height = 720)
+# plot_heatmap(ps_aedes_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="#00FF00", trans=identity_trans())+
+#   #scale_fill_gradient(low="#000033", high="#FF3300",breaks=c(1250000,1000000,0), labels=c("1250000","750000","0"))+
+#   facet_wrap(~ Organ, scales = "free_x", ncol = 2)+
+#   labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Aedes aegypti"),", especially in ovary samples")),
+#        caption = expression(paste("Heatmap of  ", italic('Aedes aegypti'), " that contains Wolbachia (log10 transformation of abundance")), x="Field", y = "ASV")
+# dev.off()
 
 
 
