@@ -293,20 +293,20 @@ dev.off()
 
 
 # Phylum 
-ps_percent_nopool <- subset_samples(ps_percent, Organ!="Pool")
-p <- plot_composition(ps_percent_nopool,
-                      taxaRank1 = "Kingdom",
-                      taxaSet1 ="Bacteria",
-                      taxaRank2 = "Genus", 
-                      numberOfTaxa = 5, 
-                      fill= "Genus") +
-  facet_wrap(~ Organ + Species, scales = "free_x", ncol = 3) + 
-  labs(title = "Proteobacteria is the dominant phylum",
-       caption = "Taxonomic composition (20 most abundant phylum)", x="Sample", y = "Abundance")
-
-pdf("4-taxo_phylum.pdf")
-plot(p)
-dev.off()
+# ps_percent_nopool <- subset_samples(ps_percent, Organ!="Pool")
+# p <- plot_composition(ps_percent_nopool,
+#                       taxaRank1 = "Kingdom",
+#                       taxaSet1 ="Bacteria",
+#                       taxaRank2 = "Genus", 
+#                       numberOfTaxa = 5, 
+#                       fill= "Genus") +
+#   facet_wrap(~ Organ + Species, scales = "free_x", ncol = 3) + 
+#   labs(title = "Proteobacteria is the dominant phylum",
+#        caption = "Taxonomic composition (20 most abundant phylum)", x="Sample", y = "Abundance")
+# 
+# pdf("4-taxo_phylum.pdf")
+# plot(p)
+# dev.off()
 
 
 
@@ -386,8 +386,8 @@ p <- plot_composition(ps_proteo_nopool2,
                       fill= "Genus") +
   facet_wrap(~ Species+Organ+Location, scales = "free_x", ncol=5) + 
   theme(plot.title = element_text(hjust = 0.5), strip.text = element_text(size=8), strip.text.x = element_text(margin = margin(0.1,0,0.1,0, "cm"))) + 
-  labs(title = "Wolbachia is the dominant genus",
-       caption = "Taxonomic composition (20 most abundant genus)", x="Sample", y = "Abundance")
+  labs(title = "When removing the 20 most abundant genus",
+       caption = "Taxonomic composition", x="Sample", y = "Abundance")
 
 pdf("7bis-taxo_wt_20_genus.pdf")
 plot(p)
@@ -413,7 +413,7 @@ ps_culex_whole_field <- subset_samples(ps_culex_whole, Location!="Labo Tetracycl
 ps_pipiens_whole <- subset_samples(ps_percent_whole, Species=="Culex pipiens")
 ps_pipiens_field <- subset_samples(ps_pipiens_whole, Field=="Field")
 
-ps_proteo_nopool2 <- prune_taxa(taxa_sums(ps_proteo_nopool2) >= 1, ps_proteo_nopool2)
+#ps_proteo_nopool2 <- prune_taxa(taxa_sums(ps_proteo_nopool2) >= 1, ps_proteo_nopool2)
 ps_proteo_nopool2 <- prune_samples(sample_sums(ps_proteo_nopool2) >= 1, ps_proteo_nopool2)
 
 #metadata_pipiens_Whole_field <- as(sample_data(Whole_pipiens_field),"matrix")
@@ -434,6 +434,7 @@ jacc.pipiens_whole <- ordinate(ps_pipiens_whole, method="NMDS", distance="jaccar
 
 prop.proteo_nopool2 <- transform_sample_counts(ps_proteo_nopool2, function(count_tab) count_tab/sum(count_tab))
 bray.proteo_nopool2 <- ordinate(ps_proteo_nopool2, method="NMDS", distance="bray")
+jacc.proteo_nopool2 <- ordinate(ps_proteo_nopool2, method="NMDS", distance="jaccard")
 
 pdf("7-NMDS_bray_whole.pdf")
 plot_ordination(prop.percent_whole, bray.percent_whole, color="Species", title="Bray NMDS with Whole body", label="Sample") +
@@ -468,13 +469,24 @@ pdf("9-NMDS_bray_culex_whole_ellipse.pdf")
   theme_gray()
 dev.off()
   
-
+pdf("9bis-NMDS_bray_proteo_nopool2.pdf")
 plot_ordination(prop.proteo_nopool2, bray.proteo_nopool2, color="Organ", title="Bray NMDS with Whole body", label="Sample") +
   labs(title = "Does species influence bacterial community structure ? ",
        caption = "Bray NMDS on whole mosquitoes", x="NMDS1", y = "NMDS2")+
   geom_point(size = 4) +
   theme_gray()
+dev.off()
+
+
+plot_ordination(prop.proteo_nopool2, jacc.proteo_nopool2, color="Organ", title="Bray NMDS with Whole body", label="Sample") +
+  labs(title = "Does species influence bacterial community structure ? ",
+       caption = "Bray NMDS on whole mosquitoes", x="NMDS1", y = "NMDS2")+
+  geom_point(size = 4) +
+  theme_gray()
+
+
   
+pdf("9bis2-NMDS_bray_proteo_nopool2.pdf")
 plot_ordination(prop.proteo_nopool2, bray.proteo_nopool2, color="Field", shape="Location", title="Bray NMDS with Whole body - Location without Aedes aegypti", label="Sample") +
   labs(title = "Do antibiotics influence microbiote ? ",
        caption = "Bray NMDS on whole Culex mosquitoes", x="NMDS1", y = "NMDS2") +
@@ -483,7 +495,7 @@ plot_ordination(prop.proteo_nopool2, bray.proteo_nopool2, color="Field", shape="
   scale_color_manual(values=c("red", "blue"))+
   geom_point(size = 5) +
   theme_gray()
-
+dev.off()
 
 # pdf("10-NMDS_bray_pipiens_whole.pdf")
 # #jpeg("NMDS_bray_Wholebody.jpg")
@@ -812,14 +824,14 @@ adonis(vegdist(t(otu_table(ps_pipiens_whole_camping_lavar)), method = "bray") ~L
 
 
 ### ANOSIM - vegan
-meta_pipiens_bosc_lavar <- sample_data(ps_pipiens_bosc_lavar)
-meta_pipiens_camping_lavar <- sample_data(ps_pipiens_ce_lavar)
+meta_pipiens_bosc_lavar <- sample_data(ps_pipiens_whole_bosc_lavar)
+meta_pipiens_camping_lavar <- sample_data(ps_pipiens_whole_camping_lavar)
 
-anosim(vegdist(t(otu_table(ps_pipiens_bosc_lavar))), meta_pipiens_bosc_lavar$Location, permutations=1000)
+anosim(vegdist(t(otu_table(ps_pipiens_whole_bosc_lavar))), meta_pipiens_bosc_lavar$Location, permutations=1000)
 # ANOSIM statistic R: 0.1413 
 # Significance: 0.026973 
 
-anosim(vegdist(t(otu_table(ps_pipiens_ce_lavar))), meta_pipiens_camping_lavar$Location, permutations=1000)
+anosim(vegdist(t(otu_table(ps_pipiens_whole_camping_lavar))), meta_pipiens_camping_lavar$Location, permutations=1000)
 # ANOSIM statistic R: 0.1571 
 # Significance: 0.12188 
 
@@ -833,9 +845,9 @@ anosim(vegdist(t(otu_table(ps_pipiens_ce_lavar))), meta_pipiens_camping_lavar$Lo
 
 ### Permanova - adonis
 
-ps__gwada <- subset_samples(ps_percent, Location=="Guadeloupe" | Field=="Field")
-ps_whole_gwada <- subset_samples(ps_analysis, Organ=="Whole")
-meta_whole_gwada <- as(sample_data(ps_analysis),"matrix")
+ps_gwada <- subset_samples(ps_percent, Location=="Guadeloupe" | Field=="Field")
+ps_whole_gwada <- subset_samples(ps_gwada, Organ=="Whole")
+meta_whole_gwada <- as(sample_data(ps_gwada),"matrix")
 
 adonis(vegdist(t(otu_table(ps_whole_gwada)), method = "bray") ~Species,
        data=as(sample_data(ps_whole_gwada), "data.frame"), permutation = 9999)
@@ -850,7 +862,7 @@ adonis(vegdist(t(otu_table(ps_whole_gwada)), method = "bray") ~Species,
 ### ANOSIM - vegan
 meta_whole_gwada <- sample_data(ps_whole_gwada)
 
-anosim(vegdist(t(otu_table(ps_whole_gwada))), metadata_analysis$Species, permutations=1000)
+anosim(vegdist(t(otu_table(ps_whole_gwada))), meta_whole_gwada$Species, permutations=1000)
 # ANOSIM statistic R: 0.7323 
 # Significance: 0.000999 
 
@@ -874,7 +886,7 @@ adonis(vegdist(t(otu_table(ps_quinque_whole)), method = "bray") ~Field,
 
 ### ANOSIM - vegan
 meta_quinque_whole <- sample_data(ps_quinque_whole)
-anosim(vegdist(t(otu_table(ps_quinque_whole))), metadata_quinque_whole$Field, permutations=1000)
+anosim(vegdist(t(otu_table(ps_quinque_whole))), meta_quinque_whole$Field, permutations=1000)
 # ANOSIM statistic R: 0.9114 
 # Significance: 0.000999 
 
@@ -917,8 +929,8 @@ adonis(vegdist(t(otu_table(ps_culex_whole_field)), method = "bray") ~Species+Loc
 
 
 
-adonis(vegdist(t(otu_table(ps_culex)), method = "bray") ~ Location+Species,
-       data=as(sample_data(ps_culex), "data.frame"), permutation = 9999)
+adonis(vegdist(t(otu_table(ps_culex_whole_field)), method = "bray") ~ Location+Species,
+       data=as(sample_data(ps_culex_whole_field), "data.frame"), permutation = 9999)
 # Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
 # Location    4     8.902 2.22562  6.4612 0.13063  1e-04 ***
 #   Residuals 172    59.247 0.34446         0.86937           
@@ -950,7 +962,7 @@ meta_pipiens_ovary_camping <- as(sample_data(ps_pipiens_ovary_camping),"matrix")
 meta_pipiens_intestine_camping <- as(sample_data(ps_pipiens_intestine_camping),"matrix")
 
 adonis(vegdist(t(otu_table(ps_pipiens_ovary_camping)), method = "bray") ~ Date,
-       data=as(sample_data(ps_pipiens_ovary_cammping), "data.frame"), permutation = 9999)
+       data=as(sample_data(ps_pipiens_ovary_camping), "data.frame"), permutation = 9999)
 # Df SumsOfSqs   MeanSqs F.Model      R2 Pr(>F)
 # Date       2  0.013597 0.0067984 0.51535 0.05146  0.611
 # Residuals 19  0.250645 0.0131918         0.94854       
