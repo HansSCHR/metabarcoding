@@ -1,0 +1,272 @@
+---
+title: "Metabarcoding of mosquito species from french continental and oversea territories"
+author: "Hans Schrieke"
+date: "26/07/2019"
+output: 
+  html_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# I : From raw sequencing data to ASV table (dada2)
+
+For this study, we have 3 runs of data and we make a dada2 process run by run and merge the different output tables in a unique.  
+
+In this document, I just show the processing of one of my runs (run 1). The difference with the other runs is the choosen parameters for filter and trim step. 
+
+If you have only one run, you can ignore the "merge run tables in a unique" step.
+
+## Set directory and load packages
+```
+# Set your working directory 
+path <- "/gs7k1/home/schrieke/stage/dada2/run1"
+setwd(path)
+
+# Load packages 
+library(dada2); packageVersion("dada2")
+```
+
+## Filter and trim
+```
+  # Store forward and reverse reads 
+  forward <- sort(list.files(path, pattern="_R1_001.fastq.gz", full.names = TRUE))
+  reverse <- sort(list.files(path, pattern="_R2_001.fastq.gz", full.names = TRUE))
+  
+  # Store sample names 
+  sample.names <- sapply(strsplit(basename(forward), "_"), `[`, 1) 
+  
+  # Prepare folds and names of filter reads
+  filtForward <- file.path(path, "filtered", paste0(sample.names, "_F_filt.fastq.gz"))
+  filtReverse <- file.path(path, "filtered", paste0(sample.names, "_R_filt.fastq.gz"))
+  
+  # Filter and trim process
+  out <- filterAndTrim(forward, filtForward, reverse, filtReverse, truncLen=c(245,235),
+                            maxN=0, maxEE=c(2,4), truncQ=2, rm.phix=TRUE,
+                            compress=TRUE, multithread=TRUE)
+  
+  # Parameters for run2: 
+     <!-- out <- filterAndTrim(forward, filtForward, reverse, filtReverse, truncLen=c(245,235), -->
+     <!--                   maxN=0, maxEE=c(2,4), truncQ=2, rm.phix=TRUE, -->
+     <!--                   compress=TRUE, multithread=TRUE) -->
+                       
+  # Parameters for run3:
+      <!-- out <- filterAndTrim(forward, filtForward, reverse, filtReverse, truncLen=c(245,235), -->
+      <!--                  maxN=0, maxEE=c(2,4), truncQ=2, rm.phix=TRUE, -->
+      <!--                  compress=TRUE, multithread=TRUE) -->
+  
+  
+  # Check output
+  head(out)
+  ```
+
+
+## Learn error rates
+
+```
+  # Learn errors
+  errForward <- learnErrors(filtForward, multithread=TRUE)
+  errReverse <- learnErrors(filtReverse, multithread=TRUE)
+
+```
+
+## Dereplication, sample inference and merge
+
+```
+  # Dereplication
+  derepForward <- derepFastq(filtForward, verbose=TRUE)
+  derepReverse <- derepFastq(filtReverse, verbose=TRUE)
+  
+  #Name the derep-class objects by the sample names
+  names(derepForward) <- sample.names
+  names(derepReverse) <- sample.names
+
+  # Sample inference
+  dadaForward <- dada(derepForward, err=errForward, multithread=TRUE)
+  dadaReverse <- dada(derepReverse, err=errReverse, multithread=TRUE)
+  
+  # Merge
+  mergers <- mergePairs(dadaForward, derepForward, dadaReverse, derepReverse, verbose=TRUE)
+  
+  # Check merge
+  head(mergers[[1]])
+```
+
+## Remove chimera and write ASV table 
+```
+  # Construct table 
+  seqtab <- makeSequenceTable(mergers)
+  
+  # Construct table without chimera
+  seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
+  
+  # Percentage of removing chimera
+  sum(seqtab.nochim)/sum(seqtab)*100
+  
+  # Set directory to output
+  dir.create("output")
+  path_output <- "/gs7k1/home/schrieke/stage/dada2/run1/output"
+  setwd(path_output)
+  
+  # Write tables to disk 
+  write.table(t(seqtab),  "seqtab1.csv", sep=";", dec=",")
+  write.table(t(seqtab.nochim),  "seqtabnochim1.csv", sep=";", dec=",")
+  saveRDS(seqtab.nochim, file="seqtab1.rds")
+  
+  # Set work directory
+  setwd(path)
+  
+  
+```
+
+## A few stats 
+
+```
+  # Sum function
+  getN <- function(x) sum(getUniques(x))
+  
+  # Create table with sum of dada forward reads, dada reverse reads, merged reads and count of reads
+  track <- cbind(out, sapply(dadaForward, getN), sapply(dadaReverse, getN), 
+                  sapply(mergers, getN),rowSums(seqtab.nochim))
+  
+  # Rename columns and rows
+  colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
+  rownames(track) <- sample.names
+  
+  # Check track 
+  head(track)
+  
+  # Set directory to output
+  setwd(path_output)
+  
+  # Write track on disk 
+  write.table(track,"stats1.csv",sep=";",dec=",") 
+  saveRDS(track, file="stats1.rds")
+  
+  # Set work directory 
+  setwd(path)
+```
+
+
+## Merge run tables in a unique table 
+```
+  # Set directory to output of run1, run2, run3
+  path_run1 <- "/gs7k1/home/schrieke/stage/dada2/run1/output"
+  path_run2 <- "/gs7k1/home/schrieke/stage/dada2/run2/output"
+  path_run3 <- "/gs7k1/home/schrieke/stage/dada2/run3/output"
+  
+  # Load seqtab of the different runs
+  st1 <- readRDS("path/to/run1/output/seqtab.rds")
+  st2 <- readRDS("path/to/run2/output/seqtab.rds")
+  st3 <- readRDS("path/to/run3/output/seqtab.rds")
+  
+  #Change Undetermined sequence names for each run
+  names(st1)[97] <- "Undetermined1"
+  names(st2)[80] <- "Undetermined2"
+  names(st3)[78] <- "Undetermined3"
+  
+  # Merge tables 
+  st.all <- mergeSequenceTables(st1, st2, st3)
+  
+  # Write final table to disk
+  setwd(path_output)
+  write.table(st.all, "seqtabnochim.csv", sep=";", dec=",")
+
+```
+
+
+## Taxonomic assignment and write taxa table 
+
+```
+  # Assign taxonomy with silva132 database reference
+  taxa <- assignTaxonomy(st.all, file.path(path, "silva_nr_v132_train_set.fa.gz"), 
+                          multithread=TRUE, minBoot=80)
+                          
+  # Add species-level annotation to the taxonomic table
+  taxa <- addSpecies(taxa, file.path(path, "silva_species_assignment_v132.fa.gz"))
+  
+  # Write track on disk 
+  write.table(taxa,"taxafinal.csv",sep=";",dec=",")
+  saveRDS(taxa, file="taxa1.rds")
+```
+
+
+
+## Optional : phylogenetic tree`
+
+```
+  # Load packages
+  library("DECIPHER")
+  library("phangorn")
+  
+  otu <- read.csv("seqtabnochimcor.csv", sep=";", dec=",")
+  otu <- as.matrix(t(otu))
+
+  seqs <- getSequences(otu)
+  names(seqs) <- seqs # This propagates to the tip labels of the tree
+  alignment <- AlignSeqs(DNAStringSet(seqs), anchor=NA,verbose=FALSE)
+
+
+
+  phangAlign <- phyDat(as(alignment, "matrix"), type="DNA")
+  dm <- dist.ml(phangAlign)
+
+
+
+  treeNJ <- NJ(dm) # Note, tip order != sequence order
+  fit = pml(treeNJ, data=phangAlign)
+  fitGTR <- update(fit, k=4, inv=0.2)
+  fitGTR <- optim.pml(fitGTR, model="GTR", optInv=TRUE, optGamma=TRUE,
+                    rearrangement = "stochastic", control = pml.control(trace = 0))
+  detach("package:phangorn", unload=TRUE)
+
+```
+# II : Decontamination and normalization 
+
+## Import and prepare data 
+
+## Decontamination 
+
+## Normalization 
+
+## Save phyloseq objects 
+
+
+# III : Exploring data 
+
+## Rarefaction curve 
+
+## Alpha diversity 
+
+## Taxonomic composition 
+
+## Beta diversity (NMDS)
+
+## Heatmap 
+
+## Statistical tests 
+
+
+# Save session 
+
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+library(dada2); packageVersion("dada2")
+```
+
+
+
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
