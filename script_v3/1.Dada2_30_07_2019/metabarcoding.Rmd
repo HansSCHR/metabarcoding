@@ -20,23 +20,36 @@ In this document, I just show the processing of one of my runs (run 1). The diff
 If you have only one run, you can ignore the "merge run tables in a unique" step.
 
 ## Set directory and load packages
-```
+```{r}
 # Set your working directory 
-path <- "/gs7k1/home/schrieke/stage/dada2/run1"
+path <- "D:/stage/data/dada2/run1"
 setwd(path)
 
 # Load packages 
 library(dada2); packageVersion("dada2")
 ```
 
-## Filter and trim
-```
+## Prepare sequences 
+```{r}
   # Store forward and reverse reads 
   forward <- sort(list.files(path, pattern="_R1_001.fastq.gz", full.names = TRUE))
   reverse <- sort(list.files(path, pattern="_R2_001.fastq.gz", full.names = TRUE))
   
   # Store sample names 
-  sample.names <- sapply(strsplit(basename(forward), "_"), `[`, 1) 
+  sample.names <- sapply(strsplit(basename(forward), "_"), `[`, 1)
+```
+
+## Inspect read quality profiles
+```{r}
+plotQualityProfile(forward[1:2])
+
+plotQualityProfile(reverse[1:2])
+```
+
+
+## Filter and trim
+```{r}
+ 
   
   # Prepare folds and names of filter reads
   filtForward <- file.path(path, "filtered", paste0(sample.names, "_F_filt.fastq.gz"))
@@ -47,25 +60,24 @@ library(dada2); packageVersion("dada2")
                             maxN=0, maxEE=c(2,4), truncQ=2, rm.phix=TRUE,
                             compress=TRUE, multithread=TRUE)
   
-  # Parameters for run2: 
-     <!-- out <- filterAndTrim(forward, filtForward, reverse, filtReverse, truncLen=c(245,235), -->
-     <!--                   maxN=0, maxEE=c(2,4), truncQ=2, rm.phix=TRUE, -->
-     <!--                   compress=TRUE, multithread=TRUE) -->
-                       
-  # Parameters for run3:
-      <!-- out <- filterAndTrim(forward, filtForward, reverse, filtReverse, truncLen=c(245,235), -->
-      <!--                  maxN=0, maxEE=c(2,4), truncQ=2, rm.phix=TRUE, -->
-      <!--                  compress=TRUE, multithread=TRUE) -->
+  # # Parameters for run2: 
+  #    <!-- out <- filterAndTrim(forward, filtForward, reverse, filtReverse, truncLen=c(245,235), -->
+  #    <!--                   maxN=0, maxEE=c(2,4), truncQ=2, rm.phix=TRUE, -->
+  #    <!--                   compress=TRUE, multithread=TRUE) -->
+  #                      
+  # # Parameters for run3:
+  #     <!-- out <- filterAndTrim(forward, filtForward, reverse, filtReverse, truncLen=c(245,235), -->
+  #     <!--                  maxN=0, maxEE=c(2,4), truncQ=2, rm.phix=TRUE, -->
+  #     <!--                  compress=TRUE, multithread=TRUE) -->
   
   
   # Check output
-  head(out)
-  ```
+  head(out)```
 
 
 ## Learn error rates
 
-```
+```{r}
   # Learn errors
   errForward <- learnErrors(filtForward, multithread=TRUE)
   errReverse <- learnErrors(filtReverse, multithread=TRUE)
@@ -74,7 +86,7 @@ library(dada2); packageVersion("dada2")
 
 ## Dereplication, sample inference and merge
 
-```
+```{r}
   # Dereplication
   derepForward <- derepFastq(filtForward, verbose=TRUE)
   derepReverse <- derepFastq(filtReverse, verbose=TRUE)
@@ -95,7 +107,7 @@ library(dada2); packageVersion("dada2")
 ```
 
 ## Remove chimera and write ASV table 
-```
+```{r}
   # Construct table 
   seqtab <- makeSequenceTable(mergers)
   
@@ -123,7 +135,7 @@ library(dada2); packageVersion("dada2")
 
 ## A few stats 
 
-```
+```{r}
   # Sum function
   getN <- function(x) sum(getUniques(x))
   
@@ -151,11 +163,11 @@ library(dada2); packageVersion("dada2")
 
 
 ## Merge run tables in a unique table 
-```
+```{r}
   # Set directory to output of run1, run2, run3
-  path_run1 <- "/gs7k1/home/schrieke/stage/dada2/run1/output"
-  path_run2 <- "/gs7k1/home/schrieke/stage/dada2/run2/output"
-  path_run3 <- "/gs7k1/home/schrieke/stage/dada2/run3/output"
+  path_run1 <- "D:/stage/data/dada2/run1/output"
+  path_run2 <- "D:/stage/data/dada2/run2/output"
+  path_run3 <- "D:/stage/data/dada2/run3/output"
   
   # Load seqtab of the different runs
   st1 <- readRDS("path/to/run1/output/seqtab.rds")
@@ -179,7 +191,7 @@ library(dada2); packageVersion("dada2")
 
 ## Taxonomic assignment and write taxa table 
 
-```
+```{r}
   # Assign taxonomy with silva132 database reference
   taxa <- assignTaxonomy(st.all, file.path(path, "silva_nr_v132_train_set.fa.gz"), 
                           multithread=TRUE, minBoot=80)
@@ -196,7 +208,7 @@ library(dada2); packageVersion("dada2")
 
 ## Optional : phylogenetic tree`
 
-```
+```{r}
   # Load packages
   library("DECIPHER")
   library("phangorn")
@@ -252,21 +264,3 @@ library(dada2); packageVersion("dada2")
 # Save session 
 
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-library(dada2); packageVersion("dada2")
-```
-
-
-
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

@@ -355,6 +355,11 @@ dev.off()
 
 # 20 genus most abundant 
 ps_proteo_nopool <- subset_samples(ps_proteo, Organ!="Pool")
+ps_proteo_nopool
+# otu_table()   OTU Table:         [ 1237 taxa and 185 samples ]
+# sample_data() Sample Data:       [ 185 samples by 16 sample variables ]
+# tax_table()   Taxonomy Table:    [ 1237 taxa by 7 taxonomic ranks ]
+
 p <- plot_composition(ps_proteo_nopool,
                       taxaRank1 = "Kingdom",
                       taxaSet1 ="Bacteria",
@@ -377,6 +382,25 @@ ps_proteo_nopool2 <- subset_taxa(ps_proteo_nopool, Genus!="Wolbachia" & Genus!="
                                     Genus!="Enhydrobacter" & Genus!="Erwinia" & Genus!="Haemophilus" & Genus!="Klebsiella" & Genus!="Legionella" &
                                     Genus!="Massilia" & Genus!="Morganella" & Genus!="Providencia" & Genus!="Pseudomonas" & Genus!="Rahnella" &
                                     Genus!="Ralstonia" & Genus!="Serratia" & Genus!="Sphingomonas" & Genus!="Thorsellia" & Genus!="Zymobacter")
+ps_proteo_nopool2
+meta_proteo_nopool2 <- as(sample_data(ps_proteo_nopool2),"matrix")
+otu_proteo_nopool2 <- as(otu_table(ps_proteo_nopool2),"matrix")
+
+# otu_table()   OTU Table:         [ 338 taxa and 185 samples ]
+# sample_data() Sample Data:       [ 185 samples by 16 sample variables ]
+# tax_table()   Taxonomy Table:    [ 338 taxa by 7 taxonomic ranks ]
+
+ps_S54 <- subset_samples(ps_proteo_nopool, Sample=="S54")
+ps_S54
+tax_S54 <- as(tax_table(ps_S54),"matrix")
+otu_S54 <- as(otu_table(ps_S54),"matrix")
+
+ps_S54_2 <- subset_taxa(ps_S54, Genus!="Wolbachia" & Genus!="Acinetobacter" & Genus!="Aeromonas" & Genus!="Asaia" &
+                                   Genus!="Enhydrobacter" & Genus!="Erwinia" & Genus!="Haemophilus" & Genus!="Klebsiella" & Genus!="Legionella" &
+                                   Genus!="Massilia" & Genus!="Morganella" & Genus!="Providencia" & Genus!="Pseudomonas" & Genus!="Rahnella" &
+                                   Genus!="Ralstonia" & Genus!="Serratia" & Genus!="Sphingomonas" & Genus!="Thorsellia" & Genus!="Zymobacter")
+tax_S54_2 <- as(tax_table(ps_S54_2),"matrix")
+otu_S54_2 <- as(otu_table(ps_S54_2),"matrix")
 
 p <- plot_composition(ps_proteo_nopool2,
                       taxaRank1 = "Kingdom",
