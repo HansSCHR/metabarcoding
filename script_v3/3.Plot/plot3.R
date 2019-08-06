@@ -413,6 +413,17 @@ p <- plot_composition(ps_proteo_nopool2,
   labs(title = "When removing the 20 most abundant genus",
        caption = "Taxonomic composition", x="Sample", y = "Abundance")
 
+ps_S147 <- subset_samples(ps_proteo_nopool, Sample=="S147")
+ps_S147
+tax_S147 <- as(tax_table(ps_S147),"matrix")
+otu_S147 <- as(otu_table(ps_S147),"matrix")
+
+ps_NP30 <- subset_samples(ps_proteo_nopool, Sample=="NP30")
+ps_NP30
+tax_NP30 <- as(tax_table(ps_NP30),"matrix")
+otu_NP30 <- as(otu_table(ps_NP30),"matrix")
+
+
 pdf("7bis-taxo_wt_20_genus.pdf")
 plot(p)
 dev.off()
@@ -440,6 +451,10 @@ ps_pipiens_field <- subset_samples(ps_pipiens_whole, Field=="Field")
 #ps_proteo_nopool2 <- prune_taxa(taxa_sums(ps_proteo_nopool2) >= 1, ps_proteo_nopool2)
 ps_proteo_nopool2 <- prune_samples(sample_sums(ps_proteo_nopool2) >= 1, ps_proteo_nopool2)
 
+ps_proteo_nopool2_wt <- subset_samples(ps_proteo_nopool2, Sample!="NP1" & Sample!="NP9" & Sample!="S74" 
+                                       & Sample!="S72" & Sample!="S67" & Sample!="S95" & Sample!="NP13")
+ps_proteo_nopool2_wt <- prune_samples(sample_sums(ps_proteo_nopool2_wt) >= 1, ps_proteo_nopool2_wt)
+
 #metadata_pipiens_Whole_field <- as(sample_data(Whole_pipiens_field),"matrix")
 
 
@@ -459,6 +474,9 @@ jacc.pipiens_whole <- ordinate(ps_pipiens_whole, method="NMDS", distance="jaccar
 prop.proteo_nopool2 <- transform_sample_counts(ps_proteo_nopool2, function(count_tab) count_tab/sum(count_tab))
 bray.proteo_nopool2 <- ordinate(ps_proteo_nopool2, method="NMDS", distance="bray")
 jacc.proteo_nopool2 <- ordinate(ps_proteo_nopool2, method="NMDS", distance="jaccard")
+
+prop.proteo_nopool2_wt <- transform_sample_counts(ps_proteo_nopool2_wt, function(count_tab) count_tab/sum(count_tab))
+bray.proteo_nopool2_wt <- ordinate(ps_proteo_nopool2_wt, method="NMDS", distance="bray")
 
 pdf("7-NMDS_bray_whole.pdf")
 plot_ordination(prop.percent_whole, bray.percent_whole, color="Species", title="Bray NMDS with Whole body", label="Sample") +
@@ -494,7 +512,7 @@ pdf("9-NMDS_bray_culex_whole_ellipse.pdf")
 dev.off()
   
 pdf("9bis-NMDS_bray_proteo_nopool2.pdf")
-plot_ordination(prop.proteo_nopool2, bray.proteo_nopool2, color="Species", title="Bray NMDS with Whole body", label="Sample") +
+plot_ordination(prop.proteo_nopool2_wt, bray.proteo_nopool2_wt, color="Species", title="Bray NMDS with Whole body", label="Sample") +
   labs(title = "Does species influence bacterial community structure ? ",
        caption = "Bray NMDS on whole mosquitoes (- the 20 most abudant genus)", x="NMDS1", y = "NMDS2")+
   geom_point(size = 4) +
