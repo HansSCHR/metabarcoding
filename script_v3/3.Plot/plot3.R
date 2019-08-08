@@ -18,21 +18,26 @@ path2 <- "D:/stage/data/runs_new2/new_02.07.2019"
 dir.create("new_29.07.2019") # folder for plot
 path2 <- "D:/stage/data/runs_new2/new_29.07.2019"
 
+dir.create("for_lefse_08_08_2019") # folder for plot
+path3 <- "D:/stage/data/runs_new2/for_lefse_08_08_2019"
+
+
 
 #--------------------------------------------------------------------------------------------#
 #-------------------------------------LOAD PACKAGES------------------------------------------#
 #--------------------------------------------------------------------------------------------#
 
 library("phyloseq")
-library("vegan")
 library("DESeq2")
+library("plotly")
+library("hrbrthemes")
+    
+library("vegan")
 library("ggplot2")
 library("dendextend")
 library("tidyr")
 library("viridis")
 library("reshape")
-library("plotly")
-library("hrbrthemes")
 library("grid")
 library("plyr")
 
@@ -1300,4 +1305,41 @@ ps_ovary_wolbachia <- prune_samples(sample_sums(ps_ovary_wolbachia) >= 1, ps_ova
 sum(as(otu_table(ps_ovary_wolbachia),"matrix")) # 4801 counts
 sum(as(otu_table(ps_ovary_wolbachia),"matrix"))/49 # 97 counts by sample
 ps_ovary_wolbachia
+
+
+
+# Lefse 
+
+library(dplyr)
+library(ggplot2)
+library(yingtools2)
+
+
+setwd(path3)
+
+## Pipiens field vs labo 
+ps_pipiens
+otu_pipiens <- as(otu_table(ps_pipiens),"matrix")
+meta_pipiens <- as(otu_table(ps_pipiens), "matrix")
+tax_pipiens <- as(tax_table(ps_pipiens),"matrix")
+
+lefse.tbl <- lefse2(ps_pipiens,class="Field", subclass="Location")
+
+## Quinque field vs labo antibio 
+ps_quinque
+otu_quinque <- as(otu_table(ps_quinque),"matrix")
+meta_quinque <- as(otu_table(ps_quinque),"matrix")
+
+
+## Pipiens organs field
+ps_pipiens_organ
+ps_pipiens_organ_field <- subset_samples(ps_pipiens_organ, Field=="Field")
+otu_pipiens_organ_field <- as(otu_table(ps_pipiens_organ_field),"matrix")
+meta_pipiens_organ_field <- as(sample_data(ps_pipiens_organ_field),"matrix")
+
+## Whole field
+ps_whole
+ps_whole_field <- subset_samples(ps_whole, Field=="Field")
+otu_whole_field <- as(otu_table(ps_whole_field),"matrix")
+meta_whole_field <- as(sample_data(ps_whole_field),"matrix")
 
