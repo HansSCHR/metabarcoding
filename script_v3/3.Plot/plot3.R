@@ -381,6 +381,10 @@ pdf("7-taxo_20_genus.pdf")
 plot(p)
 dev.off()
 
+ps_proteo_nopool_wolbachia <- subset_taxa(ps_proteo_nopool, Genus=="Wolbachia")
+tax_proteo_nopool_wolbachia <- as(tax_table(ps_proteo_nopool_wolbachia),"matrix")
+otu_proteo_nopool_wolbachia <- as(otu_table(ps_proteo_nopool_wolbachia),"matrix")
+
 
 # Without the 20 most abundant genus
 ps_proteo_nopool2 <- subset_taxa(ps_proteo_nopool, Genus!="Wolbachia" & Genus!="Acinetobacter" & Genus!="Aeromonas" & Genus!="Asaia" &
@@ -1318,28 +1322,87 @@ library(yingtools2)
 setwd(path3)
 
 ## Pipiens field vs labo 
-ps_pipiens
+ps_pipiens <- subset_samples(ps_percent, Species=="Culex pipiens")
 otu_pipiens <- as(otu_table(ps_pipiens),"matrix")
-meta_pipiens <- as(otu_table(ps_pipiens), "matrix")
+meta_pipiens <- as(sample_data(ps_pipiens), "matrix")
 tax_pipiens <- as(tax_table(ps_pipiens),"matrix")
 
-lefse.tbl <- lefse2(ps_pipiens,class="Field", subclass="Location")
+tax_pipiens <- as.data.frame(tax_pipiens)
+
+rownames(otu_pipiens)
+rownames(tax_pipiens)
+
+####Combiner les infos d'OTU et de Taxonomie####
+taxon_pipiens <- data.frame(Taxonomy=paste(tax_pipiens$Kingdom,tax_pipiens$Phylum,tax_pipiens$Class,
+                                         tax_pipiens$Order,tax_pipiens$Family, tax_pipiens$Genus, sep=" "))
+
+
+rownames(otu_pipiens) <- taxon_pipiens$Taxonomy
+
+write.table(meta_pipiens, "meta_pipiens.csv",
+            sep=";", quote=F, col.names=NA)
+
+write.table(otu_pipiens, "otu_pipiens.csv",
+            sep=";", quote=F, col.names=NA)
+
+#lefse.tbl <- lefse2(ps_pipiens,class="Field", subclass="Location")
+
+
 
 ## Quinque field vs labo antibio 
-ps_quinque
+ps_quinque <- subset_samples(ps_percent, Species=="Culex quinquefasciatus")
 otu_quinque <- as(otu_table(ps_quinque),"matrix")
-meta_quinque <- as(otu_table(ps_quinque),"matrix")
+meta_quinque <- as(sample_data(ps_quinque),"matrix")
+tax_quinque <- as(tax_table(ps_quinque),"matrix")
+tax_quinque <- as.data.frame(tax_quinque)
 
+taxon_quinque <- data.frame(Taxonomy=paste(tax_quinque$Kingdom,tax_quinque$Phylum,tax_quinque$Class,
+                                           tax_quinque$Order,tax_quinque$Family, tax_quinque$Genus, sep=" "))
+
+rownames(otu_quinque) <- taxon_quinque$Taxonomy
+
+write.table(meta_quinque, "meta_quinque.csv",
+            sep=";", quote=F, col.names=NA)
+
+write.table(otu_quinque, "otu_quinque.csv",
+            sep=";", quote=F, col.names=NA)
 
 ## Pipiens organs field
 ps_pipiens_organ
 ps_pipiens_organ_field <- subset_samples(ps_pipiens_organ, Field=="Field")
 otu_pipiens_organ_field <- as(otu_table(ps_pipiens_organ_field),"matrix")
 meta_pipiens_organ_field <- as(sample_data(ps_pipiens_organ_field),"matrix")
+tax_pipiens_organ_field <- as(tax_table(ps_pipiens_organ_field),"matrix")
+tax_pipiens_organ_field <- as.data.frame(tax_pipiens_organ_field)
+
+taxon_pipiens_organ_field <- data.frame(Taxonomy=paste(tax_pipiens_organ_field$Kingdom,tax_pipiens_organ_field$Phylum,tax_pipiens_organ_field$Class,
+                                                       tax_pipiens_organ_field$Order,tax_pipiens_organ_field$Family, tax_pipiens_organ_field$Genus, sep=" "))
+
+rownames(otu_pipiens_organ_field) <- taxon_pipiens_organ_field$Taxonomy
+
+write.table(meta_pipiens_organ_field, "meta_pipiens_organ_field.csv",
+            sep=";", quote=F, col.names=NA)
+
+write.table(otu_pipiens_organ_field, "otu_pipiens_organ_field.csv",
+            sep=";", quote=F, col.names=NA)
+
+
 
 ## Whole field
-ps_whole
+ps_whole <- subset_samples(ps_percent, Organ=="Whole")
 ps_whole_field <- subset_samples(ps_whole, Field=="Field")
 otu_whole_field <- as(otu_table(ps_whole_field),"matrix")
 meta_whole_field <- as(sample_data(ps_whole_field),"matrix")
+tax_whole_field <- as(tax_table(ps_whole_field),"matrix")
+tax_whole_field <- as.data.frame(tax_whole_field)
 
+taxon_whole_field <- data.frame(Taxonomy=paste(tax_whole_field$Kingdom,tax_whole_field$Phylum,tax_whole_field$Class,
+                                               tax_whole_field$Order,tax_whole_field$Family, tax_whole_field$Genus, sep=" "))
+
+rownames(otu_whole_field) <- taxon_whole_field$Taxonomy
+
+write.table(meta_whole_field, "meta_whole_field.csv",
+            sep=";", quote=F, col.names=NA)
+
+write.table(otu_whole_field, "otu_whole_field.csv",
+            sep=";", quote=F, col.names=NA)
