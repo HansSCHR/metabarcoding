@@ -83,6 +83,109 @@ setwd(path2)
 
 
 
+#--------------------------------------------------------------------------------------------#
+#--------------------------------------DATA OVERVIEW-----------------------------------------#
+#--------------------------------------------------------------------------------------------#
+
+ps_decontam2
+# phyloseq-class experiment-level object
+# otu_table()   OTU Table:         [ 2031 taxa and 193 samples ]
+# sample_data() Sample Data:       [ 193 samples by 16 sample variables ]
+# tax_table()   Taxonomy Table:    [ 2031 taxa by 7 taxonomic ranks ]
+
+sum(as(otu_table(ps_decontam2),"matrix"))
+
+
+## Culex pipiens
+ps_pipiens <- subset_samples(ps_decontam2, Species=="Culex pipiens")
+ps_pipiens <- prune_taxa(taxa_sums(ps_pipiens) >= 1, ps_pipiens) # remove asv that are not present in samples
+ps_pipiens <- prune_samples(sample_sums(ps_pipiens) >= 1, ps_pipiens) # remove counts = 0
+ps_pipiens
+# phyloseq-class experiment-level object
+# otu_table()   OTU Table:         [ 1115 taxa and 142 samples ]
+# sample_data() Sample Data:       [ 142 samples by 16 sample variables ]
+# tax_table()   Taxonomy Table:    [ 1115 taxa by 7 taxonomic ranks ]
+
+sum(as(otu_table(ps_pipiens),"matrix")) # 8 271 948 reads
+
+ps_pipiens_bosc <- subset_samples(ps_pipiens, Location=="Bosc")
+ps_pipiens_bosc <- prune_taxa(taxa_sums(ps_pipiens_bosc) >= 1, ps_pipiens_bosc) # remove asv that are not present in samples
+ps_pipiens_bosc <- prune_samples(sample_sums(ps_pipiens_bosc) >= 1, ps_pipiens_bosc)
+ps_pipiens_bosc
+# phyloseq-class experiment-level object
+# otu_table()   OTU Table:         [ 356 taxa and 35 samples ]
+# sample_data() Sample Data:       [ 35 samples by 16 sample variables ]
+# tax_table()   Taxonomy Table:    [ 356 taxa by 7 taxonomic ranks ]
+sum(as(otu_table(ps_pipiens_bosc),"matrix")) # 2 296 501
+
+
+ps_pipiens_camping <- subset_samples(ps_pipiens, Location=="Camping Europe")
+ps_pipiens_camping <- prune_taxa(taxa_sums(ps_pipiens_camping) >= 1, ps_pipiens_camping) # remove asv that are not present in samples
+ps_pipiens_camping <- prune_samples(sample_sums(ps_pipiens_camping) >= 1, ps_pipiens_camping)
+ps_pipiens_camping
+# phyloseq-class experiment-level object
+# otu_table()   OTU Table:         [ 708 taxa and 59 samples ]
+# sample_data() Sample Data:       [ 59 samples by 16 sample variables ]
+# tax_table()   Taxonomy Table:    [ 708 taxa by 7 taxonomic ranks ]
+sum(as(otu_table(ps_pipiens_camping),"matrix")) # 1 921 909 reads
+
+ps_pipiens_lavar <- subset_samples(ps_pipiens, Location=="Lavar (labo)")
+ps_pipiens_lavar <- prune_taxa(taxa_sums(ps_pipiens_lavar) >= 1, ps_pipiens_lavar) # remove asv that are not present in samples
+ps_pipiens_lavar <- prune_samples(sample_sums(ps_pipiens_lavar) >= 1, ps_pipiens_lavar)
+ps_pipiens_lavar
+# phyloseq-class experiment-level object
+# otu_table()   OTU Table:         [ 215 taxa and 48 samples ]
+# sample_data() Sample Data:       [ 48 samples by 16 sample variables ]
+# tax_table()   Taxonomy Table:    [ 215 taxa by 7 taxonomic ranks ]
+sum(as(otu_table(ps_pipiens_lavar),"matrix")) # 4 053 538
+
+## Culex quinquefasciatus
+ps_quinque <- subset_samples(ps_decontam2, Species=="Culex quinquefasciatus")
+ps_quinque <- prune_taxa(taxa_sums(ps_quinque) >= 1, ps_quinque) # remove asv that are not present in samples
+ps_quinque <- prune_samples(sample_sums(ps_quinque) >= 1, ps_quinque) # remove counts = 0
+ps_quinque
+# phyloseq-class experiment-level object
+# otu_table()   OTU Table:         [ 388 taxa and 35 samples ]
+# sample_data() Sample Data:       [ 35 samples by 16 sample variables ]
+# tax_table()   Taxonomy Table:    [ 388 taxa by 7 taxonomic ranks ]
+
+sum(as(otu_table(ps_quinque),"matrix")) # 11 539 650 reads
+
+ps_quinque_guadeloupe <- subset_samples(ps_quinque, Location=="Guadeloupe")
+ps_quinque_guadeloupe <- prune_taxa(taxa_sums(ps_quinque_guadeloupe) >= 1, ps_quinque_guadeloupe)
+ps_quinque_guadeloupe <- prune_samples(sample_sums(ps_quinque_guadeloupe) >= 1, ps_quinque_guadeloupe)
+ps_quinque_guadeloupe
+# phyloseq-class experiment-level object
+# otu_table()   OTU Table:         [ 235 taxa and 21 samples ]
+# sample_data() Sample Data:       [ 21 samples by 16 sample variables ]
+# tax_table()   Taxonomy Table:    [ 235 taxa by 7 taxonomic ranks ]
+sum(as(otu_table(ps_quinque_guadeloupe),"matrix")) # 5 617 904 reads
+
+ps_quinque_tc <- subset_samples(ps_quinque, Location=="Wolbachia -")
+ps_quinque_tc <- prune_taxa(taxa_sums(ps_quinque_tc) >= 1, ps_quinque_tc)
+ps_quinque_tc <- prune_samples(sample_sums(ps_quinque_tc) >= 1, ps_quinque_tc)
+ps_quinque_tc
+# phyloseq-class experiment-level object
+# otu_table()   OTU Table:         [ 170 taxa and 14 samples ]
+# sample_data() Sample Data:       [ 14 samples by 16 sample variables ]
+# tax_table()   Taxonomy Table:    [ 170 taxa by 7 taxonomic ranks ]
+sum(as(otu_table(ps_quinque_tc),"matrix")) # 5 921 746 reads
+
+## Aedes aegypti
+ps_aedes <- subset_samples(ps_decontam2, Species=="Aedes aegypti")
+ps_aedes <- prune_taxa(taxa_sums(ps_aedes) >= 1, ps_aedes) # remove asv that are not present in samples
+ps_aedes <- prune_samples(sample_sums(ps_aedes) >= 1, ps_aedes) # remove counts = 0
+ps_aedes
+# phyloseq-class experiment-level object
+# otu_table()   OTU Table:         [ 744 taxa and 16 samples ]
+# sample_data() Sample Data:       [ 16 samples by 16 sample variables ]
+# tax_table()   Taxonomy Table:    [ 744 taxa by 7 taxonomic ranks ]
+
+sum(as(otu_table(ps_aedes),"matrix")) # 6 478 268 reads
+
+
+
+
 
 #--------------------------------------------------------------------------------------------#
 #--------------------------------------DISTRIBUTION------------------------------------------#
@@ -512,7 +615,7 @@ pdf("9-NMDS_bray_culex_whole_ellipse.pdf")
 #jpeg("NMDS_bray_Wholebody.jpg")
   plot_ordination(prop.culex_whole, bray.culex_whole, color="Field", shape="Location", title="Bray NMDS with Whole body - Location without Aedes aegypti", label="Sample") +
   labs(title = "Do antibiotics influence microbiote ? ",
-       caption = "Bray NMDS on whole Culex mosquitoes", x="NMDS1", y = "NMDS2") +
+       caption = expression(paste("Bray NMDS on whole ", italic("Culex")," whole mosquitoes")), x="NMDS1", y = "NMDS2") +
   stat_ellipse(geom = "polygon", level=0.70,alpha = 1/2, aes(fill = Species))+
   scale_fill_manual(values=c("yellow","green"))+
   scale_color_manual(values=c("red", "blue"))+
@@ -551,7 +654,7 @@ dev.off()
 pdf("9bis2-NMDS_jacc_proteo_nopool2.pdf")
 plot_ordination(prop.proteo_nopool2, bray.proteo_nopool2, color="Field", shape="Location", title="Jaccard NMDS with Whole body - Location without Aedes aegypti", label="Sample") +
   labs(title = "Do antibiotics influence microbiote ? ",
-       caption = "Bray NMDS on whole Culex mosquitoes (- the 20 most abudant genus)", x="NMDS1", y = "NMDS2") +
+       caption = expression(paste("Bray NMDS on whole ", italic('Culex '), "mosquitoes (- the 20 most abudant genus)"), x="NMDS1", y = "NMDS2")) +
   #stat_ellipse(geom = "polygon", level=0.70,alpha = 1/2, aes(fill = Species))+
   scale_fill_manual(values=c("yellow","green"))+
   scale_color_manual(values=c("red", "blue"))+
@@ -594,7 +697,7 @@ jacc.pipiens_organ_camping <- ordinate(ps_pipiens_organ_camping, method="NMDS", 
 pdf("11-NMDS_bray_organs_culex_CE.pdf")
 plot_ordination(prop.pipiens_organ_camping, bray.pipiens_organ_camping, color="Organ", title="Bray NMDS", label="Sample") +
   labs(title = expression(paste("Organ influences the structure of ", italic("Culex pipiens"), " bacterial community")),
-       caption = expression(paste("Bray NMDS on Ovary, Intestine and Salivary Gland of ", italic('Culex pipiens'), " from Camping Europe")), x="NMDS1", y = "NMDS2")+
+       caption = expression(paste("Bray NMDS on ovary, intestine and salivary gland of ", italic('Culex pipiens'), " from Camping Europe")), x="NMDS1", y = "NMDS2")+
   geom_point(size = 4) +
   theme_gray()
 dev.off()
@@ -669,11 +772,15 @@ plot_heatmap(ps_pipiens_wolbachia, sample.label="Location", sample.order="Locati
   #scale_fill_gradient(low="#000033", high="#FF3300",breaks=c(100,64,32,0), labels=c("100","64","32","0"))+
   facet_wrap(~ Field + Organ, scales = "free_x", ncol = 3)+
   labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Culex pipiens"))),
-       caption = expression(paste("Heatmap of ", italic('Culex pipiens'), " that contains Wolbachia (no transformation")), x="Field", y = "ASV")
+       caption = expression(paste("Heatmap of ", italic('Culex pipiens'), " that contains Wolbachia (no transformation)")), x="Field", y = "ASV")
 dev.off()
 
 
-
+plot_heatmap(ps_pipiens_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="#00FF00", trans=log10_trans())+
+  #scale_fill_gradient(low="#000033", high="#FF3300",breaks=c(100,64,32,0), labels=c("100","64","32","0"))+
+  facet_wrap(~ Field + Organ, scales = "free_x", ncol = 4)+
+  labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Culex pipiens"))),
+       caption = expression(paste("Heatmap of ", italic('Culex pipiens'), " that contains Wolbachia (log10 transformation)")), x="Field", y = "ASV")
 
 # Culex quinquefasciatus
 ps_quinque <- subset_samples(ps_decontam2, Species=="Culex quinquefasciatus")
@@ -715,6 +822,14 @@ plot_heatmap(ps_quinque_wolbachia, sample.label="Location", sample.order="Locati
        caption = expression(paste("Heatmap of ", italic('Culex quinquefasciatus'), " that contains Wolbachia (no transformation)")), x="Field", y = "ASV")
 dev.off()
 
+plot_heatmap(ps_quinque_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="#00FF00",trans=log10_trans())+
+  #scale_fill_gradient2(low = grey, mid = "#FE1B00", high = "#00FF00", midpoint=625000)+
+  #scale_colour_gradientn(colours = c("red","yellow","green","lightblue","darkblue", "black"),values = c(1250000, 1000000, 75000,50000, 25000,0))+
+  #scale_fill_gradient(low="gray", high="#FF3300",breaks=c(1250000,1000000,0), labels=c("1250000","750000","0"))+
+  facet_wrap(~ Organ, scales = "free_x", ncol = 3)+
+  labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Culex quinquefasciatus"), ", especially in ovary and pool samples")),
+       caption = expression(paste("Heatmap of ", italic('Culex quinquefasciatus'), " that contains Wolbachia (log10 transformation)")), x="Field", y = "ASV")
+
 # jpeg("16bis-heatmap_quinque_wolbachia.jpg", width = 1080, height = 720)
 # plot_heatmap(ps_quinque_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="#00FF00", trans=identity_trans())+
 #   #scale_fill_gradient(low="#000033", high="#FF3300",breaks=c(1250000,1000000,0), labels=c("1250000","750000","0"))+
@@ -738,6 +853,12 @@ plot_heatmap(ps_aedes_wolbachia, sample.label="Location", sample.order="Location
   labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Aedes aegypti"),", especially in ovary samples")),
        caption = expression(paste("Heatmap of  ", italic('Aedes aegypti'), " that contains Wolbachia (no transformation)")), x="Field", y = "ASV")
 dev.off()
+
+plot_heatmap(ps_aedes_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="#00FF00", trans=log10_trans())+
+  #scale_fill_gradient(low="#000033", high="#FF3300",breaks=c(1250000,1000000,0), labels=c("1250000","750000","0"))+
+  facet_wrap(~ Organ, scales = "free_x", ncol = 2)+
+  labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Aedes aegypti"),", especially in ovary samples")),
+       caption = expression(paste("Heatmap of  ", italic('Aedes aegypti'), " that contains Wolbachia (log10 transformation)")), x="Field", y = "ASV")
 
 # jpeg("17bis-heatmap_aedes_wolbachia.jpg", width = 1080, height = 720)
 # plot_heatmap(ps_aedes_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="#00FF00", trans=identity_trans())+

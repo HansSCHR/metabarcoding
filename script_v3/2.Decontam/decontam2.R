@@ -316,7 +316,7 @@ ps_wolbachia <- prune_samples(sample_sums(ps_wolbachia) >= 1, ps_wolbachia)
 
 
 ps_proteo <- subset_taxa(ps_percent, Phylum=="Proteobacteria")
-ps_wolbachia <- prune_taxa(taxa_sums(ps_proteo) >= 1, ps_proteo)
+ps_proteo <- prune_taxa(taxa_sums(ps_proteo) >= 1, ps_proteo)
 ps_proteo <- prune_samples(sample_sums(ps_proteo) >= 1, ps_proteo)
 
 

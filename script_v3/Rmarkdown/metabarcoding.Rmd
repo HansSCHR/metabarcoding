@@ -1,0 +1,747 @@
+---
+title: "Metabarcoding of mosquito species from french continental and oversea territories"
+author: "Hans Schrieke"
+date: "26/07/2019"
+output: 
+  html_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# I : From raw sequencing data to ASV table (dada2)
+
+For this study, we have 3 runs of data and we make a dada2 process run by run and merge the different output tables in a unique.  
+
+In this document, I just show the processing of one of my runs (run 1). The difference with the other runs is the choosen parameters for filter and trim step. 
+
+If you have only one run, you can ignore the "merge run tables in a unique" step.
+
+## Set directory and load packages
+```{r}
+# Set your working directory 
+path <- "D:/stage/data/dada2/run1"
+setwd(path)
+
+# Load packages 
+library(dada2); packageVersion("dada2")
+```
+
+## Prepare sequences 
+```{r}
+  # Store forward and reverse reads 
+  forward <- sort(list.files(path, pattern="_R1_001.fastq.gz", full.names = TRUE))
+  reverse <- sort(list.files(path, pattern="_R2_001.fastq.gz", full.names = TRUE))
+  
+  # Store sample names 
+  sample.names <- sapply(strsplit(basename(forward), "_"), `[`, 1)
+```
+
+## Inspect read quality profiles
+```{r}
+plotQualityProfile(forward[1:2])
+
+plotQualityProfile(reverse[1:2])
+```
+
+
+## Filter and trim
+```{r}
+ 
+  
+  # Prepare folds and names of filter reads
+  filtForward <- file.path(path, "filtered", paste0(sample.names, "_F_filt.fastq.gz"))
+  filtReverse <- file.path(path, "filtered", paste0(sample.names, "_R_filt.fastq.gz"))
+  
+  # Filter and trim process
+  out <- filterAndTrim(forward, filtForward, reverse, filtReverse, truncLen=c(245,235),
+                            maxN=0, maxEE=c(2,4), truncQ=2, rm.phix=TRUE,
+                            compress=TRUE, multithread=TRUE)
+  
+  # # Parameters for run2: 
+  #    <!-- out <- filterAndTrim(forward, filtForward, reverse, filtReverse, truncLen=c(245,235), -->
+  #    <!--                   maxN=0, maxEE=c(2,4), truncQ=2, rm.phix=TRUE, -->
+  #    <!--                   compress=TRUE, multithread=TRUE) -->
+  #                      
+  # # Parameters for run3:
+  #     <!-- out <- filterAndTrim(forward, filtForward, reverse, filtReverse, truncLen=c(245,235), -->
+  #     <!--                  maxN=0, maxEE=c(2,4), truncQ=2, rm.phix=TRUE, -->
+  #     <!--                  compress=TRUE, multithread=TRUE) -->
+  
+  
+  # Check output
+  head(out)
+  
+```
+
+
+## Learn error rates
+
+```{r}
+  # Learn errors
+  errForward <- learnErrors(filtForward, multithread=TRUE)
+  errReverse <- learnErrors(filtReverse, multithread=TRUE)
+
+```
+
+## Dereplication, sample inference and merge
+
+```{r}
+  # Dereplication
+  derepForward <- derepFastq(filtForward, verbose=TRUE)
+  derepReverse <- derepFastq(filtReverse, verbose=TRUE)
+  
+  #Name the derep-class objects by the sample names
+  names(derepForward) <- sample.names
+  names(derepReverse) <- sample.names
+
+  # Sample inference
+  dadaForward <- dada(derepForward, err=errForward, multithread=TRUE)
+  dadaReverse <- dada(derepReverse, err=errReverse, multithread=TRUE)
+  
+  # Merge
+  mergers <- mergePairs(dadaForward, derepForward, dadaReverse, derepReverse, verbose=TRUE)
+  
+  # Check merge
+  head(mergers[[1]])
+```
+
+## Remove chimera and write ASV table 
+```{r}
+  # Construct table 
+  seqtab <- makeSequenceTable(mergers)
+  
+  # Construct table without chimera
+  seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
+  
+  # Percentage of removing chimera
+  print(paste0("Percentage of chimera: ",100-(sum(seqtab.nochim)/sum(seqtab)*100)))
+  
+  # Write tables to disk 
+  write.table(t(seqtab),  "seqtab1.csv", sep=";", dec=",")
+  write.table(t(seqtab.nochim),  "seqtabnochim1.csv", sep=";", dec=",")
+  saveRDS(seqtab.nochim, file="seqtab1.rds")
+  
+  
+```
+
+## A few stats 
+
+```{r}
+  # Sum function
+  getN <- function(x) sum(getUniques(x))
+  
+  # Create table with sum of dada forward reads, dada reverse reads, merged reads and count of reads
+  track <- cbind(out, sapply(dadaForward, getN), sapply(dadaReverse, getN), 
+                  sapply(mergers, getN),rowSums(seqtab.nochim))
+  
+  # Rename columns and rows
+  colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
+  rownames(track) <- sample.names
+  
+  # Check track 
+  head(track)
+  
+  # Write track on disk 
+  write.table(track,"stats1.csv",sep=";",dec=",") 
+  saveRDS(track, file="stats1.rds")
+```
+
+
+## Merge run tables in a unique table 
+```{r}
+  # Set directory to output of run1, run2, run3
+  path_run1 <- "D:/stage/data/dada2/run1/output"
+  path_run2 <- "D:/stage/data/dada2/run2/output"
+  path_run3 <- "D:/stage/data/dada2/run3/output"
+  
+  # Load seqtab of the different runs
+  st1 <- readRDS("D:/stage/data/dada2/run1/output/seqtab1.rds")
+  st2 <- readRDS("D:/stage/data/dada2/run2/output/seqtab2.rds")
+  st3 <- readRDS("D:/stage/data/dada2/run3/output/seqtab3.rds")
+  
+  # Invert and convert tables to data frame
+  st1 <- t(st1)
+  st2 <- t(st2)
+  st3 <- t(st3)
+
+  st1 <- as.data.frame(st1)
+  st2 <- as.data.frame(st2)
+  st3 <- as.data.frame(st3)
+  
+  #Change Undetermined sequence names for each run
+  names(st1)[97] <- "Undetermined1"
+  names(st2)[80] <- "Undetermined2"
+  names(st3)[78] <- "Undetermined3"
+  
+  # Invert and convert tables to matrix
+  st1 <- t(st1)
+  st2 <- t(st2)
+  st3 <- t(st3)
+
+  st1 <- as.matrix(st1)
+  st2 <- as.matrix(st2)
+  st3 <- as.matrix(st3)
+  
+  
+  # Merge tables 
+  st.all <- mergeSequenceTables(st1, st2, st3)
+  st.all.good <- t(st.all)
+  
+  # Write final table to disk
+  write.table(st.all.good, "seqtabnochim.csv", sep=";", dec=",")
+
+```
+
+
+## Taxonomic assignment and write taxa table 
+
+```{r}
+  # Assign taxonomy with silva132 database reference
+  taxa <- assignTaxonomy(st.all, file.path(path, "silva_nr_v132_train_set.fa.gz"), 
+                          multithread=TRUE, minBoot=80)
+                          
+  # Add species-level annotation to the taxonomic table
+  taxa <- addSpecies(taxa, file.path(path, "silva_species_assignment_v132.fa.gz"))
+  
+  # Write track on disk 
+  write.table(taxa,"taxafinal.csv",sep=";",dec=",")
+  saveRDS(taxa, file="taxa1.rds")
+```
+
+```{r}
+head(taxa)
+```
+
+
+## Optional : phylogenetic tree`
+
+```{r}
+  # Load packages
+  library("DECIPHER")
+  library("phangorn")
+  
+  otu <- read.csv("seqtabnochim.csv", sep=";", dec=",")
+  otu <- as.matrix(t(otu))
+
+  seqs <- getSequences(otu)
+  names(seqs) <- seqs # This propagates to the tip labels of the tree
+  alignment <- AlignSeqs(DNAStringSet(seqs), anchor=NA,verbose=FALSE)
+
+
+
+  phangAlign <- phyDat(as(alignment, "matrix"), type="DNA")
+  dm <- dist.ml(phangAlign)
+
+
+
+  treeNJ <- NJ(dm) # Note, tip order != sequence order
+  fit = pml(treeNJ, data=phangAlign)
+  fitGTR <- update(fit, k=4, inv=0.2)
+  fitGTR <- optim.pml(fitGTR, model="GTR", optInv=TRUE, optGamma=TRUE,
+                    rearrangement = "stochastic", control = pml.control(trace = 0))
+  detach("package:phangorn", unload=TRUE)
+
+```
+
+## Save session
+```{r}
+library(session); packageVersion("session")
+save.session("metabarcoding.Rda")
+```
+
+# II : Decontamination and normalization 
+
+## Set path and load packages
+```{r}
+path = "D:/stage/data/runs_new2/"
+setwd(path)
+
+dir.create("decontam_script")
+path_main <- "D:/stage/data/runs_new2/decontam_script/"# folder for plot
+setwd(path_main)
+
+dir.create("1.raw_data")
+path_raw <- "D:/stage/data/runs_new2/decontam_script/1.raw_data"
+
+dir.create("2.decontam")
+path_decontam <- "D:/stage/data/runs_new2/decontam_script/2.decontam"
+
+dir.create("3.decontam2")
+path_decontam2 <- "D:/stage/data/runs_new2/decontam/script/3.decontam2"
+
+library(dada2); packageVersion("dada2")
+library(phyloseq); packageVersion("phyloseq")
+library(ggplot2); packageVersion("ggplot2")
+library(decontam); packageVersion("decontam")
+library(DESeq2); packageVersion("DESeq2")
+
+theme_set(theme_gray()) #set ggplot2 graphic theme
+```
+
+## Import and prepare data 
+```{r}
+setwd(path)
+asv_tab <- read.csv("seqtabnochimcor.csv", sep=";", dec=",")
+asv_tax <- read.csv("taxafinal.csv", sep=";", dec=",")
+metadata <- read.csv("metadata_runs_update_02_07_19.csv", sep=",", row.names = 1)
+load("tree.Rdata")
+
+
+setwd(path_raw)
+
+# giving our seq headers more manageable names (ASV_1, ASV_2...)
+asv_seqs <- rownames(asv_tab)
+asv_headers <- vector(dim(asv_tab)[1], mode="character")
+asv_headers2 <- vector(dim(asv_tab)[1], mode="character")
+
+for (i in 1:dim(asv_tab)[1]) {
+  asv_headers[i] <- paste(">ASV", i, sep="_")
+  asv_headers2[i] <- paste("ASV", i, sep="_")
+}
+
+# making and writing out a fasta of our final ASV seqs:
+asv_fasta_standard <- c(rbind(asv_headers, asv_seqs))
+asv_fasta <- cbind(asv_headers2, asv_seqs)
+write(asv_fasta_standard, "ASVs_standard.fa")
+write(asv_fasta, "ASVs.fa")
+
+# count table:
+asv_tab_standard <- as.matrix(asv_tab)
+row.names(asv_tab_standard) <- sub(">", "", asv_headers)
+
+# tax table:
+asv_tax_standard <- as.matrix(asv_tax)
+row.names(asv_tax_standard) <- sub(">", "", asv_headers)
+
+# table asv name - sequence
+table_asv_sequence <- cbind(asv_tax_standard[,0], rownames(asv_tax))
+colnames(table_asv_sequence) <- c("Sequence")
+write(table_asv_sequence, "ASVs_name_sequence.fa")
+
+```
+
+## Create phyloseq object
+```{r}
+# Phyloseq object with STANDARD
+OTU_std = otu_table(as.matrix(asv_tab_standard), taxa_are_rows =TRUE)
+TAX_std = tax_table(as.matrix(asv_tax_standard))
+SAM = sample_data(metadata)
+
+ps_std <- phyloseq(OTU_std, TAX_std, SAM)
+ps_std1 <- subset_samples(ps_std, Species!="CuT" & Species!="CuP" & Species!="CuN" & Species!="CuG") # remove cullicoides	
+
+asv_tab_std0 <- as(otu_table(ps_std1),"matrix")
+write.table(asv_tab_std0, "0.asv_tab_standard0.tsv", sep="\t", quote=F, col.names=NA)
+
+ps_std <- subset_samples(ps_std1, Sample!="NP16" & Sample!="NP17" & Sample!="NP18" & Sample!="NP19" & Sample!="S69" & Sample!="S70" & Sample!="S81" & Sample!="S82" & Sample!="NP20" & Sample!="NP21") # 11 juin 2019
+ps_std <- prune_taxa(taxa_sums(ps_std) >= 1, ps_std) # remove asv that are not present in samples 
+ps_std <- prune_samples(sample_sums(ps_std) >= 1, ps_std) # remove sample with 0 read
+
+
+# Phyloseq object WITHOUT STANDARD
+OTU = otu_table(asv_tab, taxa_are_rows =TRUE)
+TAX = tax_table(as.matrix(asv_tax))
+TREE = phy_tree(tree)
+
+ps <- phyloseq(OTU, TAX, SAM, TREE)
+ps <- subset_samples(ps, Species!="CuT" & Species!="CuP" & Species!="CuN" & Species!="CuG") # remove cullicoides
+ps <- subset_samples(ps, Sample!="NP16" & Sample!="NP17" & Sample!="NP18" & Sample!="NP19" & Sample!="S69" & Sample!="S70" & Sample!="S81" & Sample!="S82" & Sample!="NP20" & Sample!="NP21")
+ps <- prune_taxa(taxa_sums(ps) >= 1, ps) # remove asv that are not present in samples
+ps <- prune_samples(sample_sums(ps) >= 1, ps) # remove counts = 0
+
+write.table(asv_tab_standard, "1.asv_tab_standard.tsv", sep="\t", quote=F, col.names=NA)
+
+ps
+```
+
+## Decontamination 
+```{r}
+setwd(path_decontam)
+
+######################################## PREPROCESS #########################################
+
+df <- as.data.frame(sample_data(ps)) # Put sample_data into a ggplot-friendly data.frame
+df$LibrarySize <- sample_sums(ps)
+df <- df[order(df$LibrarySize),]
+df$Index <- seq(nrow(df))
+
+pdf("LibrarySize.pdf")
+ggplot(data=df, aes(x=Index, y=LibrarySize, color=Dna)) + geom_point()
+dev.off()
+
+as.numeric(get_variable(ps, "Dna"))
+get_variable(ps, "Dna")
+sample_data(ps)
+
+sample_data(ps)$Dna <- as.numeric(get_variable(ps, "Dna"))
+
+
+
+######################  IDENTIFY CONTAMINANTS - PREVALENCE #################################
+
+sample_data(ps)$is.neg <- sample_data(ps)$Control == "Control sample"
+sample_data(ps_std)$is.neg <- sample_data(ps_std)$Control == "Control sample"
+
+contamdf.prev01 <- isContaminant(ps, method="prevalence", neg="is.neg", threshold=0.1)
+contamdf.prev01_std <- isContaminant(ps_std, method="prevalence", neg="is.neg", threshold=0.1)
+table(contamdf.prev01$contaminant) # 36 contaminants
+
+contam_asvs_prev01 <- row.names(contamdf.prev01[contamdf.prev01$contaminant == TRUE, ])
+contam_asvs_prev01_std <- row.names(contamdf.prev01_std[contamdf.prev01_std$contaminant == TRUE, ])
+
+contam_standard <-asv_tax_standard[row.names(asv_tax_standard) %in% contam_asvs_prev01_std, ]
+contam <-asv_tax[row.names(asv_tax) %in% contam_asvs_prev01, ]
+
+
+ps.pa <- transform_sample_counts(ps, function(abund) 1*(abund>0))
+ps.pa.neg <- prune_samples(sample_data(ps.pa)$Control == "Control sample", ps.pa)
+ps.pa.pos <- prune_samples(sample_data(ps.pa)$Control == "True sample", ps.pa)
+
+
+# Make data.frame of prevalence in positive and negative samples
+df.pa <- data.frame(pa.pos=taxa_sums(ps.pa.pos), pa.neg=taxa_sums(ps.pa.neg),
+                    contaminant=contamdf.prev01$contaminant)
+
+pdf("Prevalence_Decontam.pdf")
+ggplot(data=df.pa, aes(x=pa.neg, y=pa.pos, color=contaminant)) + geom_point() +
+  xlab("Prevalence (Negative Controls)") + ylab("Prevalence (True Samples)")
+dev.off()
+
+# write table of contaminant asv 
+write.table(contam, "asv_contam_prev01.tsv",
+            sep="\t", quote=F, col.names=NA)
+```
+
+## New tables 
+```{r}
+# new otu table 
+asv_tab_prev01 <- asv_tab[!row.names(asv_tab) %in% contam_asvs_prev01, ]
+asv_tab_prev01_std <- asv_tab_standard[!row.names(asv_tab_standard) %in% contam_asvs_prev01_std, ]
+
+# new tax table
+asv_tax_prev01 <- asv_tax[!row.names(asv_tax) %in% contam_asvs_prev01, ]
+asv_tax_prev01_std <- asv_tax_standard[!row.names(asv_tax_standard) %in% contam_asvs_prev01_std, ]
+
+# new fasta  
+contam_indices <- which(asv_fasta %in% paste0(">", contam_asvs_prev01))
+dont_want <- sort(c(contam_indices, contam_indices + 1))
+asv_fasta_prev01 <- asv_fasta[- dont_want]
+
+# write tables
+write.table(asv_tab_prev01, "asv_tab_prev01.tsv", sep="\t", quote=F, col.names=NA)
+write.table(asv_tab_prev01_std, "2.asv_tab_prev01_std.tsv", sep="\t", quote=F, col.names=NA)
+
+write.table(asv_tax_prev01, "asv_tax_prev01.tsv", sep="\t", quote=F, col.names=NA)
+write.table(asv_tax_prev01_std, "asv_tax_prev01_std.tsv", sep="\t", quote=F, col.names=NA)
+
+write(asv_fasta_prev01, "fasta_prev01.fa")
+
+
+# extract new metadata as dataframe from phyloseq 
+meta <- function(x) { # https://rdrr.io/github/microbiome/microbiome/src/R/meta.R
+  df <- as(sample_data(x), "data.frame")
+  rownames(df) <- sample_names(x)
+  df
+}
+metadata_prev01 <- meta(ps)
+
+# write decontamed metadata
+write.table(metadata_prev01, "metadata_decontam.tsv", sep="\t", quote=F, col.names=NA)
+```
+
+## New decontam phyloseq object
+```{r}
+OTU_decontam <- otu_table(asv_tab_prev01_std, taxa_are_rows = TRUE)
+TAX_decontam <- tax_table(as.matrix(asv_tax_prev01_std))
+SAM_decontam <- sample_data(metadata_prev01)
+
+ps_decontam <- phyloseq(OTU_decontam, TAX_decontam, SAM_decontam)
+ps_decontam <- prune_taxa(taxa_sums(ps_decontam) >= 1, ps_decontam)# remove counts = 0 in tax_table
+ps_decontam
+# phyloseq-class experiment-level object
+# otu_table()   OTU Table:         [ 2418 taxa and 208 samples ]
+# sample_data() Sample Data:       [ 208 samples by 16 sample variables ]
+# tax_table()   Taxonomy Table:    [ 2418 taxa by 7 taxonomic ranks ]
+
+ps_decontam <- subset_taxa(ps_decontam, Kingdom == "Bacteria") # select only Bacteria
+ps_decontam <- prune_samples(sample_sums(ps_decontam) >= 1, ps_decontam) # remove counts = 0 in otu_table
+
+ps_decontam <- subset_samples(ps_decontam, Control!="Control sample") # remove blanks
+```
+
+## Removing remaining choloroplast and mitochondria
+```{r}
+ps_decontam2 <- subset_taxa(ps_decontam, Family!="Mitochondria" & Order!="Chloroplast")
+ps_decontam2 <- prune_samples(sample_sums(ps_decontam2) >= 1, ps_decontam2)
+ps_decontam2 <- prune_taxa(taxa_sums(ps_decontam2) >= 1, ps_decontam2)
+
+asv_decontam2 <- as(otu_table(ps_decontam2),"matrix")
+
+write.table(asv_decontam2, "3.asv_decontam2.tsv",sep="\t", quote=F, col.names=NA)
+
+mitochondria <- subset_taxa(ps_decontam, Family=="Mitochondria") # 1 mitochondria 
+chloroplast <- subset_taxa(ps_decontam, Order=="Chloroplast") # 26 chloroplast 
+
+tax_mitochondria <- as(tax_table(mitochondria),"matrix")
+tax_chloroplast <- as(tax_table(chloroplast),"matrix")
+```
+
+## Normalization 
+```{r}
+# % 
+ps_percent <- transform_sample_counts( ps_decontam2, function(x) x/sum(x)*100 )
+asv_percent <- as(otu_table(ps_percent),"matrix")
+write.table(asv_percent, "4.asv_percent.tsv", sep="\t", quote=F, col.names=NA)
+
+
+# deseq 
+ps_deseq <- transform_sample_counts(ps_decontam2, function(x) x+1)
+
+otu_deseq <- as(otu_table(ps_deseq),"matrix")
+metadata_deseq <- as(sample_data(ps_deseq),"matrix")
+
+deseq_counts <- DESeqDataSetFromMatrix(otu_deseq, colData = metadata_deseq, design = ~Dna)
+deseq_counts_vst <- varianceStabilizingTransformation(deseq_counts)
+
+asv_deseq <- as.matrix(assay(deseq_counts_vst))
+
+write.table(asv_deseq, "5.asv_deseq.tsv", sep="\t", quote=F, col.names=NA)
+
+otu_table(ps_deseq) <- otu_table(asv_deseq, taxa_are_rows = TRUE)
+
+ps_deseq
+```
+
+## Exploring Wolbachia and Proteobacteria
+```{r}
+ps_wolbachia <- subset_taxa(ps_percent, Genus == "Wolbachia")
+ps_wolbachia <- prune_taxa(taxa_sums(ps_wolbachia) >= 1, ps_wolbachia)
+ps_wolbachia <- prune_samples(sample_sums(ps_wolbachia) >= 1, ps_wolbachia)
+ps_wolbachia
+
+
+
+ps_proteo <- subset_taxa(ps_percent, Phylum=="Proteobacteria")
+ps_proteo <- prune_taxa(taxa_sums(ps_proteo) >= 1, ps_proteo)
+ps_proteo <- prune_samples(sample_sums(ps_proteo) >= 1, ps_proteo)
+ps_proteo
+```
+
+## Save phyloseq objects
+```{r}
+setwd(path_main)
+save(ps, ps_decontam, ps_decontam2, ps_percent, ps_wolbachia, ps_proteo, ps_deseq, file = "objects.RData")
+
+setwd(path)
+save(ps, ps_decontam, ps_decontam2, ps_percent, ps_wolbachia, ps_proteo, ps_deseq, file = "objects.RData")
+
+```
+
+## Save session
+```{r}
+#install.packages("session", repos = "http://cran.us.r-project.org")
+library(session); packageVersion("session")
+save.session("metabarcoding2.Rda")
+#load("phyloseq.Rda")
+```
+
+# III : Exploring data 
+
+## Set path and load packages
+```{r}
+setwd(path)
+
+dir.create("new_02.07.2019") # folder for plot
+path2 <- "D:/stage/data/runs_new2/new_02.07.2019"
+
+dir.create("new_29.07.2019") # folder for plot
+path2 <- "D:/stage/data/runs_new2/new_29.07.2019"
+
+dir.create("for_lefse_08_08_2019") # folder for plot
+path3 <- "D:/stage/data/runs_new2/for_lefse_08_08_2019"
+
+
+library("phyloseq")
+library("DESeq2")
+library("plotly")
+library("hrbrthemes")
+    
+library("vegan")
+library("ggplot2")
+library("dendextend")
+library("tidyr")
+library("viridis")
+library("reshape")
+library("grid")
+library("plyr")
+
+scripts <- c("graphical_methods.R",
+             "tree_methods.R",
+             "plot_merged_trees.R",
+             "specificity_methods.R",
+             "ternary_plot.R",
+             "richness.R",
+             "edgePCA.R",
+             "copy_number_correction.R",
+             "import_frogs.R",
+             "prevalence.R",
+             "compute_niche.R",
+             "NCM_fit.R")
+urls <-
+  paste0("https://raw.githubusercontent.com/mahendra-mariadassou/phyloseq-extended/master/R/",
+         scripts)
+
+for (url in urls) {
+  source(url)
+}
+```
+## Distribution
+```{r}
+readsumsdf <- data.frame(nreads = sort(taxa_sums(ps), TRUE),
+                         sorted = 1:ntaxa(ps), 
+                         type = "OTU")
+
+ggplot(readsumsdf, 
+       aes(x = sorted, y = nreads)) + 
+  geom_bar(stat = "identity") + 
+  scale_y_log10() 
+
+readsumsdf2 <- data.frame(nreads = sort(sample_sums(ps), TRUE), 
+                          sorted = 1:nsamples(ps), 
+                          type = "Samples")
+
+readsumsdf3 <- rbind(readsumsdf,readsumsdf2)
+
+p  <-  ggplot(readsumsdf3, 
+              aes(x = sorted, y = nreads)) + 
+  geom_bar(stat = "identity")+
+  theme_gray()
+
+p + ggtitle("Total number of reads before Preprocessing") + scale_y_log10() + facet_wrap(~type, 1, scales = "free")
+```
+## Rarefaction curve 
+```{r}
+sample_data(ps_decontam2)$Organ <- factor(sample_data(ps_decontam2)$Organ, 
+                                          levels=c("Whole", "Pool", "Intestine", "Ovary", "Salivary gland"))
+
+sample_data(ps_percent)$Organ <- factor(sample_data(ps_percent)$Organ, 
+                                          levels=c("Whole", "Pool", "Intestine", "Ovary", "Salivary gland"))
+
+sample_data(ps_proteo)$Organ <- factor(sample_data(ps_proteo)$Organ, 
+                                        levels=c("Whole", "Pool", "Intestine", "Ovary", "Salivary gland"))
+
+sample_data(ps_proteo)$Species <- factor(sample_data(ps_proteo)$Species, 
+                                       levels=c("Culex pipiens", "Culex quinquefasciatus", "Aedes aegypti"))
+
+ps_nopool <- subset_samples(ps_decontam2, Organ!="Pool")
+
+
+p1 <- ggrare(ps_nopool,
+             step = 500,
+             #color = "red",
+             plot = T,
+             parallel = F,
+             se = T)
+
+p2 <- p1 + 
+  facet_wrap(~ Organ) + 
+  geom_vline(xintercept = min(sample_sums(ps)), 
+             color = "gray60") +
+  xlim(0,100000) +
+  ylim(0, 230) +
+  labs(title = "Suffisant observations have been made for sampling",
+       caption = "Rarefaction curve",
+       x = "Sample Size", y = "Species Richness")
+
+
+plot(p2)
+
+```
+## Alpha diversity 
+```{r}
+# Wolbachia - 
+ps_whole <- subset_samples(ps_decontam2, Organ=="Whole")
+ps_whole <- subset_samples(ps_whole, Organ!="Pool")
+
+
+data4 <-  filter_taxa(ps_whole, 
+                      function(x) sum(x >= 10) > (1), 
+                      prune =  TRUE) 
+
+p1 <- plot_richness(data4, 
+                    x="Sample", 
+                    color="Location", 
+                    measures=c("Observed","Shannon", "Chao1"), 
+                    nrow = 1) +
+  ggtitle("Alpha diversity")
+
+ggplot(p1$data,aes(Organ,value,colour=Location)) +
+  facet_grid(variable ~ Species, drop=T,scale="free",space="fixed") +
+  geom_boxplot(outlier.colour = NA,alpha=0.8, 
+               position = position_dodge(width=0.9)) + 
+  geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
+  labs(title = expression(paste("A greater diversity for Aedes and lab samples")),
+       caption = "Alpha diversity", y = "Diversity index")
+
+
+
+
+
+ps_aedes <- subset_samples(ps_decontam2, Species!="Aedes aegypti" & Organ!="Pool")
+
+data5 <-  filter_taxa(ps_aedes, 
+                      function(x) sum(x >= 10) > (1), 
+                      prune =  TRUE) 
+
+p2 <- plot_richness(data5, 
+                    x="Sample", 
+                    color="Location", 
+                    measures=c("Observed","Shannon", "Chao1"), 
+                    nrow = 1) +
+  ggtitle("Alpha diversity")
+
+
+ggplot(p2$data,aes(Field,value,colour=Location,shape=Field)) +
+  facet_grid(variable ~ Organ+Species, drop=T,scale="free",space="fixed") +
+  geom_boxplot(outlier.colour = NA,alpha=0.8,
+               position = position_dodge(width=0.9)) +
+  geom_point(size=2,position=position_jitterdodge(dodge.width=0.9)) +
+  labs(title = "A greater diversity in whole organisms",
+       caption = "Alpha diversity", y = "Diversity index")
+
+```
+
+## Taxonomic composition 
+```{r}
+ps_proteo_nopool <- subset_samples(ps_proteo, Organ!="Pool")
+ps_proteo_nopool
+
+p <- plot_composition(ps_proteo_nopool,
+                      taxaRank1 = "Kingdom",
+                      taxaSet1 ="Bacteria",
+                      taxaRank2 = "Genus", 
+                      numberOfTaxa = 20, 
+                      fill= "Genus") +
+  facet_wrap(~ Species+Organ+Location, scales = "free_x", ncol=5) + 
+  #facet_grid(Species~Organ) +
+  theme(plot.title = element_text(hjust = 0.5), strip.text = element_text(size=8), strip.text.x = element_text(margin = margin(0.1,0,0.1,0, "cm"))) + 
+  labs(title = "Wolbachia is the dominant genus",
+       caption = "Taxonomic composition (20 most abundant genus)", x="Sample", y = "Abundance")
+
+pdf("7-taxo_20_genus.pdf")
+plot(p)
+dev.off()
+```
+## Beta diversity (NMDS)
+
+## Heatmap 
+
+## Statistical tests 
+
+
+# Save session 
+
+
