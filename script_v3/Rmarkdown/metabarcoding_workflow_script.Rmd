@@ -15,9 +15,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 For this study, we have 3 runs of data and we make a dada2 process run by run and merge the different output tables in a unique.  
 
-In this document, I just show the processing of one of my runs (run 1). The difference with the other runs is the choosen parameters for filter and trim step. 
+For Dada2 step, I just show the processing of one of my runs (run 1). The difference with the other runs is the choosen parameters for filter and trim step. 
 
 If you have only one run, you can ignore the "merge run tables in a unique" step.
+
+If you have already your sequence, taxonomic tables and your metadata file, you can go to the second part "Decontamination and normalization" for load your files and proceed to decontamination and analysis. 
 
 ## Set directory and load packages
 ```{r}
@@ -58,17 +60,17 @@ plotQualityProfile(reverse[1:2])
   # Filter and trim process
   out <- filterAndTrim(forward, filtForward, reverse, filtReverse, truncLen=c(245,235),
                             maxN=0, maxEE=c(2,4), truncQ=2, rm.phix=TRUE,
-                            compress=TRUE, multithread=TRUE)
+                            compress=TRUE, multithread=TRUE) # multithread=FALSE on windows
   
   # # Parameters for run2: 
-  #    <!-- out <- filterAndTrim(forward, filtForward, reverse, filtReverse, truncLen=c(245,235), -->
-  #    <!--                   maxN=0, maxEE=c(2,4), truncQ=2, rm.phix=TRUE, -->
-  #    <!--                   compress=TRUE, multithread=TRUE) -->
+  #    out <- filterAndTrim(forward, filtForward, reverse, filtReverse, truncLen=c(245,235),
+  #                       maxN=0, maxEE=c(2,4), truncQ=2, rm.phix=TRUE,
+  #                       compress=TRUE, multithread=TRUE)
   #                      
   # # Parameters for run3:
-  #     <!-- out <- filterAndTrim(forward, filtForward, reverse, filtReverse, truncLen=c(245,235), -->
-  #     <!--                  maxN=0, maxEE=c(2,4), truncQ=2, rm.phix=TRUE, -->
-  #     <!--                  compress=TRUE, multithread=TRUE) -->
+  #      out <- filterAndTrim(forward, filtForward, reverse, filtReverse, truncLen=c(245,235),
+  #                       maxN=0, maxEE=c(2,4), truncQ=2, rm.phix=TRUE,
+  #                       compress=TRUE, multithread=TRUE)
   
   
   # Check output
@@ -554,14 +556,9 @@ save.session("metabarcoding2.Rda")
 ```{r}
 setwd(path)
 
-dir.create("new_02.07.2019") # folder for plot
-path2 <- "D:/stage/data/runs_new2/new_02.07.2019"
+dir.create("plot") # folder for plot
+path2 <- "D:/stage/data/runs_new2/plot"
 
-dir.create("new_29.07.2019") # folder for plot
-path2 <- "D:/stage/data/runs_new2/new_29.07.2019"
-
-dir.create("for_lefse_08_08_2019") # folder for plot
-path3 <- "D:/stage/data/runs_new2/for_lefse_08_08_2019"
 
 
 library("phyloseq")
@@ -594,6 +591,7 @@ urls <-
   paste0("https://raw.githubusercontent.com/mahendra-mariadassou/phyloseq-extended/master/R/",
          scripts)
 
+# you need a connection internet or a local script copy
 for (url in urls) {
   source(url)
 }
@@ -622,7 +620,7 @@ p  <-  ggplot(readsumsdf3,
 
 p + ggtitle("Total number of reads before Preprocessing") + scale_y_log10() + facet_wrap(~type, 1, scales = "free")
 ```
-## Rarefaction curve 
+## Change order of columns
 ```{r}
 sample_data(ps_decontam2)$Organ <- factor(sample_data(ps_decontam2)$Organ, 
                                           levels=c("Whole", "Pool", "Intestine", "Ovary", "Salivary gland"))
@@ -635,9 +633,11 @@ sample_data(ps_proteo)$Organ <- factor(sample_data(ps_proteo)$Organ,
 
 sample_data(ps_proteo)$Species <- factor(sample_data(ps_proteo)$Species, 
                                        levels=c("Culex pipiens", "Culex quinquefasciatus", "Aedes aegypti"))
+```
 
+## Rarefaction curve 
+```{r}
 ps_nopool <- subset_samples(ps_decontam2, Organ!="Pool")
-
 
 p1 <- ggrare(ps_nopool,
              step = 500,
@@ -716,6 +716,9 @@ ggplot(p2$data,aes(Field,value,colour=Location,shape=Field)) +
 
 ## Taxonomic composition 
 ```{r}
+
+# Proteobacteria
+
 ps_proteo_nopool <- subset_samples(ps_proteo, Organ!="Pool")
 ps_proteo_nopool
 
@@ -726,22 +729,351 @@ p <- plot_composition(ps_proteo_nopool,
                       numberOfTaxa = 20, 
                       fill= "Genus") +
   facet_wrap(~ Species+Organ+Location, scales = "free_x", ncol=5) + 
-  #facet_grid(Species~Organ) +
   theme(plot.title = element_text(hjust = 0.5), strip.text = element_text(size=8), strip.text.x = element_text(margin = margin(0.1,0,0.1,0, "cm"))) + 
   labs(title = "Wolbachia is the dominant genus",
        caption = "Taxonomic composition (20 most abundant genus)", x="Sample", y = "Abundance")
 
+plot(p)
+
 pdf("7-taxo_20_genus.pdf")
 plot(p)
 dev.off()
+
+
+# Proteobacteria within the 20 most abundant genus
+
+ps_proteo_nopool2 <- subset_taxa(ps_proteo_nopool, Genus!="Wolbachia" & Genus!="Acinetobacter" & Genus!="Aeromonas" & Genus!="Asaia" &
+                                    Genus!="Enhydrobacter" & Genus!="Erwinia" & Genus!="Haemophilus" & Genus!="Klebsiella" & Genus!="Legionella" &
+                                    Genus!="Massilia" & Genus!="Morganella" & Genus!="Providencia" & Genus!="Pseudomonas" & Genus!="Rahnella" &
+                                    Genus!="Ralstonia" & Genus!="Serratia" & Genus!="Sphingomonas" & Genus!="Thorsellia" & Genus!="Zymobacter")
+ps_proteo_nopool2
+
+p <- plot_composition(ps_proteo_nopool2,
+                      taxaRank1 = "Kingdom",
+                      taxaSet1 ="Bacteria",
+                      taxaRank2 = "Genus", 
+                      numberOfTaxa = 20, 
+                      fill= "Genus") +
+  facet_wrap(~ Species+Organ+Location, scales = "free_x", ncol=5) + 
+  theme(plot.title = element_text(hjust = 0.5), strip.text = element_text(size=8), strip.text.x = element_text(margin = margin(0.1,0,0.1,0, "cm"))) + 
+  labs(title = "When removing the 20 most abundant genus",
+       caption = "Taxonomic composition", x="Sample", y = "Abundance")
+
+plot(p)
+
+pdf("7bis-taxo_wt_20_genus.pdf")
+plot(p)
+dev.off()
+
 ```
 ## Beta diversity (NMDS)
+```{r}
+
+# Whole individuals 
+
+ps_percent_whole <- subset_samples(ps_percent, Organ == "Whole")
+ps_culex_whole <- subset_samples(ps_percent_whole, Species!="Aedes aegypti") # whole Culex
+
+prop.percent_whole <- transform_sample_counts(ps_percent_whole, function(count_tab) count_tab/sum(count_tab))
+bray.percent_whole <- ordinate(ps_percent_whole, method="NMDS", distance="bray")
+
+prop.culex_whole <- transform_sample_counts(ps_culex_whole, function(count_tab) count_tab/sum(count_tab))
+bray.culex_whole <- ordinate(ps_culex_whole, method="NMDS", distance="bray")
+
+#pdf("7-NMDS_bray_whole.pdf")
+plot_ordination(prop.percent_whole, bray.percent_whole, color="Species", title="Bray NMDS with Whole body", label="Sample") +
+  labs(title = "Does species influence bacterial community structure ? ",
+       caption = "Bray NMDS on whole mosquitoes", x="NMDS1", y = "NMDS2")+
+  geom_point(size = 4) +
+  theme_gray()
+#dev.off()
+
+#pdf("9-NMDS_bray_culex_whole_ellipse.pdf")
+  plot_ordination(prop.culex_whole, bray.culex_whole, color="Field", shape="Location", title="Bray NMDS with Whole body - Location without Aedes aegypti", label="Sample") +
+  labs(title = "Do antibiotics influence microbiote ? ",
+       caption = expression(paste("Bray NMDS on whole ", italic("Culex")," whole mosquitoes")), x="NMDS1", y = "NMDS2") +
+  stat_ellipse(geom = "polygon", level=0.70,alpha = 1/2, aes(fill = Species))+
+  scale_fill_manual(values=c("yellow","green"))+
+  scale_color_manual(values=c("red", "blue"))+
+  geom_point(size = 5) +
+  theme_gray()
+#dev.off()
+
+```
+
+```{r}
+# Organs
+
+ps_pipiens_organ <- subset_samples(ps_percent, Organ!="Whole" & Species=="Culex pipiens") # organ samples of Culex pipiens
+ps_pipiens_organ <- subset_samples(ps_pipiens_organ, Sample!="S175") # removing outlier
+ps_pipiens_organ_camping <- subset_samples(ps_pipiens_organ, Location=="Camping Europe") # organ samples of Culex pipiens from Camping Europe
+
+prop.pipiens_organ_camping <- transform_sample_counts(ps_pipiens_organ_camping, function(count_tab) count_tab/sum(count_tab))
+bray.pipiens_organ_camping <- ordinate(ps_pipiens_organ_camping, method="NMDS", distance="bray")
+
+#pdf("11-NMDS_bray_organs_culex_CE.pdf")
+plot_ordination(prop.pipiens_organ_camping, bray.pipiens_organ_camping, color="Organ", title="Bray NMDS", label="Sample") +
+  labs(title = expression(paste("Organ influences the structure of ", italic("Culex pipiens"), " bacterial community")),
+       caption = expression(paste("Bray NMDS on ovary, intestine and salivary gland of ", italic('Culex pipiens'), " from Camping Europe")), x="NMDS1", y = "NMDS2")+
+  geom_point(size = 4) +
+  theme_gray()
+#dev.off()
+
+```
+
+```{r}
+# Time (intestine)
+
+ps_intestine_camping <- subset_samples(ps_percent, Location == "Camping Europe" & Organ =="Intestine") # intestine samples from Camping Europe
+ps_intestine_camping_date <- subset_samples(ps_intestine_camping, Date =="30/05/2017" | Date =="28/06/2017") # intestine samples from Camping Europe extracted the 30/05/2017 and 28/06/2017
+
+prop.intestine_camping_date <- transform_sample_counts(ps_intestine_camping_date, function(count_tab) count_tab/sum(count_tab))
+bray.intestine_camping_date <- ordinate(ps_intestine_camping_date, method="NMDS", distance="bray")
+
+#pdf("13-NMDS_bray_intestine_CE_date.pdf")
+plot_ordination(prop.intestine_camping_date, bray.intestine_camping_date, color="Date", title="Bray NMDS with intestine of Culex pipiens in Camping Europe", label="Sample")+
+  labs(title = expression(paste("Does time of sampling influence the microbiote of ", italic("Culex pipiens"),"?")),
+       caption = "Bray NMDS on intestine at Camping Europe", x="NMDS1", y = "NMDS2") +
+  geom_point(size = 4) +
+  theme_gray()
+#dev.off()
+
+
+# Time (ovary)
+
+ps_percent_ovary <- subset_samples(ps_percent, Organ == "Ovary")
+ps_ovary_culex_camping <- subset_samples(ps_percent_ovary, Species=="Culex pipiens" & Location == "Camping Europe") # ovary samples from Camping Europe
+ps_ovary_culex_camping_date <- subset_samples(ps_ovary_culex_camping, Date =="30/05/2017" | Date =="28/06/2017") # samples extracted the 30/05/2017 and 28/06/2017
+ps_ovary_culex_camping_date <- subset_samples(ps_ovary_culex_camping_date, Sample!="S103") # removing outlier
+
+prop.ovary_culex_camping_date <- transform_sample_counts(ps_ovary_culex_camping_date, function(count_tab) count_tab/sum(count_tab))
+bray.ovary_culex_camping_date <- ordinate(ps_ovary_culex_camping_date, method="NMDS", distance="bray")
+
+#pdf("14-NMDS_bray_ovary_CE_date.pdf")
+plot_ordination(prop.ovary_culex_camping_date, bray.ovary_culex_camping_date, color="Date", title="Bray NMDS with ovary - Culex, Camping Europe, Dates", label="Sample") +
+  labs(title = expression(paste("Does time of sampling influence the microbiote of ", italic("Culex pipiens"),"?")),
+       caption = "Bray NMDS on intestine at Camping Europe", x="NMDS1", y = "NMDS2") +
+  geom_point(size = 4) +
+  theme_gray()
+#dev.off()
+
+
+```
 
 ## Heatmap 
 
+```{r}
+# Heatmap within Culex pipiens samples
+
+ps_pipiens <- subset_samples(ps_percent, Species=="Culex pipiens")
+ps_pipiens_wolbachia <- subset_taxa(ps_pipiens, Genus=="Wolbachia") # Culex pipiens samples with Wolbachia
+ps_pipiens_wolbachia <- prune_taxa(taxa_sums(ps_pipiens_wolbachia) >= 1, ps_pipiens_wolbachia) # removing samples without taxa
+ps_pipiens_wolbachia <- prune_samples(sample_sums(ps_pipiens_wolbachia) >= 1, ps_pipiens_wolbachia) # removing samples without read
+ps_pipiens_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_pipiens_wolbachia),TRUE)[1:30]), ps_pipiens_wolbachia) # select the 30 most abundant Wolbachia samples
+
+# heatmap with transformed abundance (log10)
+plot_heatmap(ps_pipiens_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="#00FF00", trans=log10_trans())+
+  facet_wrap(~ Field + Organ, scales = "free_x", ncol = 4)+
+  labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Culex pipiens"))),
+       caption = expression(paste("Heatmap of ", italic('Culex pipiens'), " that contains Wolbachia (log10 transformation)")), x="Field", y = "ASV")
+
+
+```
+
+```{r}
+# Heatmap within Culex quinquefasciatus samples
+
+ps_quinque <- subset_samples(ps_decontam2, Species=="Culex quinquefasciatus")
+ps_quinque_wolbachia <- subset_taxa(ps_quinque, Genus=="Wolbachia") # Culex quinquefasciatus samples with Wolbachia
+ps_quinque_wolbachia <- prune_taxa(taxa_sums(ps_quinque_wolbachia) >= 1, ps_quinque_wolbachia) # removing samples without taxa
+ps_quinque_wolbachia <- prune_samples(sample_sums(ps_quinque_wolbachia) >= 1, ps_quinque_wolbachia) # removing samples without read
+ps_quinque_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_quinque_wolbachia),TRUE)[1:30]), ps_quinque_wolbachia) # select the 30 most abundant Wolbachia samples
+
+# heatmap with transformed abundance (log10)
+plot_heatmap(ps_quinque_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="#00FF00",trans=log10_trans())+
+  facet_wrap(~ Organ, scales = "free_x", ncol = 3)+
+  labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Culex quinquefasciatus"), ", especially in ovary and pool samples")),
+       caption = expression(paste("Heatmap of ", italic('Culex quinquefasciatus'), " that contains Wolbachia (log10 transformation)")), x="Field", y = "ASV")
+
+```
+
+```{r}
+# Heatmap within Aedes aegypti samples
+
+ps_aedes <- subset_samples(ps_decontam2, Species=="Aedes aegypti" & Organ!="Pool")
+ps_aedes_wolbachia <- subset_taxa(ps_aedes, Genus=="Wolbachia") # Aedes aegypti samples with Wolbachia
+ps_aedes_wolbachia <- prune_taxa(taxa_sums(ps_aedes_wolbachia) >= 1, ps_aedes_wolbachia) # removing samples without taxa
+ps_aedes_wolbachia <- prune_samples(sample_sums(ps_aedes_wolbachia) >= 1, ps_aedes_wolbachia) # removing samples without read
+ps_aedes_wolbachia <- prune_taxa(names(sort(taxa_sums(ps_aedes_wolbachia),TRUE)[1:30]), ps_aedes_wolbachia) # select the 30 most abundant Wolbachia samples
+
+# heatmap with transformed abundance (log10)
+plot_heatmap(ps_aedes_wolbachia, sample.label="Location", sample.order="Location", low="#000033", high="#00FF00", trans=log10_trans())+
+  facet_wrap(~ Organ, scales = "free_x", ncol = 2)+
+  labs(title = expression(paste("ASV1 is abundant in almost all sequences of ", italic("Aedes aegypti"),", especially in ovary samples")),
+       caption = expression(paste("Heatmap of  ", italic('Aedes aegypti'), " that contains Wolbachia (log10 transformation)")), x="Field", y = "ASV")
+
+
+
+```
+
+
 ## Statistical tests 
+
+### Difference between field and labo pipiens samples microbiota ? (field influence)
+
+```{r}
+# Permanova
+
+ps_pipiens_whole <- subset_samples(ps_percent_whole, Species=="Culex pipiens")
+ps_pipiens_whole_bosc_lavar <- subset_samples(ps_pipiens_whole, Location!="Camping Europe") # whole Culex pipiens from Lavar and Bosc
+
+adonis(vegdist(t(otu_table(ps_pipiens_whole_bosc_lavar)), method = "bray") ~Field,
+       data=as(sample_data(ps_pipiens_whole_bosc_lavar), "data.frame"), permutation = 9999)
+
+ps_pipiens_whole_camping_lavar <- subset_samples(ps_pipiens_whole, Location!="Bosc") # whole Culex pipiens from Lavar and Camping
+
+adonis(vegdist(t(otu_table(ps_pipiens_whole_camping_lavar)), method = "bray") ~Location,
+       data=as(sample_data(ps_pipiens_whole_camping_lavar), "data.frame"), permutation = 9999)
+
+```
+
+```{r}
+# Anosim
+
+meta_pipiens_bosc_lavar <- sample_data(ps_pipiens_whole_bosc_lavar)
+
+anosim(vegdist(t(otu_table(ps_pipiens_whole_bosc_lavar))), meta_pipiens_bosc_lavar$Location, permutations=1000)
+
+meta_pipiens_camping_lavar <- sample_data(ps_pipiens_whole_camping_lavar)
+
+anosim(vegdist(t(otu_table(ps_pipiens_whole_camping_lavar))), meta_pipiens_camping_lavar$Location, permutations=1000)
+
+```
+
+### Difference between whole Aedes aegypti and Culex quinquefasciatus microbiota from Guadeloupe ? (species influence)
+
+```{r}
+# Permanova
+ps_gwada <- subset_samples(ps_percent, Location=="Guadeloupe" | Field=="Field")
+ps_whole_gwada <- subset_samples(ps_gwada, Organ=="Whole")
+
+adonis(vegdist(t(otu_table(ps_whole_gwada)), method = "bray") ~Species,
+       data=as(sample_data(ps_whole_gwada), "data.frame"), permutation = 9999)
+
+```
+
+```{r}
+# Anosim 
+meta_whole_gwada <- sample_data(ps_whole_gwada)
+
+anosim(vegdist(t(otu_table(ps_whole_gwada))), meta_whole_gwada$Species, permutations=1000)
+
+```
+
+### Difference between whole field and wolbachia- Culex quinquefasciatus microbiota ? (antibiotics influence)
+
+```{r}
+# Permanova
+ps_quinque_whole <- subset_samples(ps_quinque, Organ=="Whole")
+
+adonis(vegdist(t(otu_table(ps_quinque_whole)), method = "bray") ~Field,
+       data=as(sample_data(ps_quinque_whole), "data.frame"), permutation = 9999)
+
+```
+
+```{r}
+# Anosim 
+meta_quinque_whole <- sample_data(ps_quinque_whole)
+
+anosim(vegdist(t(otu_table(ps_quinque_whole))), meta_quinque_whole$Field, permutations=1000)
+
+```
+
+
+### Does location influence the structure of whole Culex microbiote ? (location influence)
+
+```{r}
+# Permanova
+ps_culex_whole_field <- subset_samples(ps_culex_whole, Location!="Labo Tetracycline" & Location!="Lavar")
+
+adonis(vegdist(t(otu_table(ps_culex_whole_field)), method = "bray") ~Location,
+       data=as(sample_data(ps_culex_whole_field), "data.frame"), permutation = 9999)
+
+```
+
+```{r}
+# Anosim 
+meta_culex_whole_field <- sample_data(ps_culex_whole_field)
+
+anosim(vegdist(t(otu_table(ps_culex_whole_field))), meta_culex_whole_field$Location, permutations=1000)
+
+```
+
+
+### Difference between culex samples from Camping Europe microbiota depends on two dates ? (date influence)
+
+```{r}
+# Permanova
+ps_pipiens_camping <- subset_samples(ps_pipiens, Location=="Camping Europe")
+ps_pipiens_ovary_camping <- subset_samples(ps_pipiens_camping, Organ=="Ovary")
+
+adonis(vegdist(t(otu_table(ps_pipiens_ovary_camping)), method = "bray") ~ Date,
+       data=as(sample_data(ps_pipiens_ovary_camping), "data.frame"), permutation = 9999)
+
+ps_pipiens_intestine_camping <- subset_samples(ps_pipiens_camping, Organ=="Intestine")
+
+adonis(vegdist(t(otu_table(ps_pipiens_intestine_camping)), method = "bray") ~ Date,
+       data=as(sample_data(ps_pipiens_intestine_camping), "data.frame"), permutation = 9999)
+
+```
+
+```{r}
+# Anosim 
+meta_pipiens_ovary_camping <- sample_data(ps_pipiens_ovary_camping)
+anosim(vegdist(t(otu_table(ps_pipiens_ovary_camping))), meta_pipiens_ovary_camping$Date, permutations=1000)
+
+meta_pipiens_intestine_camping <- sample_data(ps_pipiens_intestine_camping)
+anosim(vegdist(t(otu_table(ps_pipiens_intestine_camping))), meta_pipiens_intestine_camping$Date, permutations=1000)
+```
+
+
+### Difference between culex pipiens samples microbiota depends on organs ? (organs influence)
+
+```{r}
+# Permanova
+adonis(vegdist(t(otu_table(ps_pipiens_organ)), method = "bray") ~ Organ,
+       data=as(sample_data(ps_pipiens_organ), "data.frame"), permutation = 9999)
+
+```
+
+```{r}
+# Anosim 
+meta_pipiens_organ <- sample_data(ps_pipiens_organ)
+anosim(vegdist(t(otu_table(ps_pipiens_organ))), meta_pipiens_organ$Organ, permutations=1000)
+
+```
+
+```{r}
+# Pairwise permanova
+
+#install.packages("devtools")
+#devtools::install_github("leffj/mctoolsr")
+
+library("mctoolsr")
+
+calc_pairwise_permanovas(as(vegdist(t(otu_table(ps_pipiens_organ))), "matrix"), as(sample_data(ps_pipiens_organ), "data.frame"), "Organ")
+
+```
+
+
+
+
 
 
 # Save session 
+```{r}
+library(session); packageVersion("session")
+save.session("metabarcoding_workflow.Rda")
+```
 
 
